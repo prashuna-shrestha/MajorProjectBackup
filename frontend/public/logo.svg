@@ -1,0 +1,37 @@
+<svg width="600" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="30" />
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="600" height="300" fill="#1F1B2E" rx="16"/>
+  
+  <!-- Blurred orbs -->
+  <circle cx="150" cy="75" r="64" fill="#8B5CF6" opacity="0.4" filter="url(#blur)"/>
+  <circle cx="450" cy="225" r="64" fill="#A78BFA" opacity="0.3" filter="url(#blur)"/>
+  
+  <!-- Hexagon -->
+  <path d="M 250 80 L 285 97.5 L 285 132.5 L 250 150 L 215 132.5 L 215 97.5 Z" 
+        stroke="#8B5CF6" stroke-width="2" fill="#8B5CF620"/>
+  
+  <!-- Center circle -->
+  <circle cx="250" cy="115" r="12" fill="#A78BFA"/>
+  
+  <!-- Trending up icon -->
+  <polyline points="244,115 248,111 252,114 256,109" stroke="#1F1B2E" stroke-width="2" 
+            fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="252,109 256,109 256,113" stroke="#1F1B2E" stroke-width="2" 
+            fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Logo text -->
+  <text x="310" y="135" font-family="system-ui, -apple-system, sans-serif" 
+        font-size="48" font-weight="600" fill="#8B5CF6" letter-spacing="-1">
+    FinSight
+  </text>
+  
+  <!-- Underline -->
+  <rect x="310" y="145" width="192" height="4" 
+        fill="#A78BFA" rx="2"/>
+</svg>
