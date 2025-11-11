@@ -12,12 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { alpha, styled } from "@mui/material/styles";
-import {
-  Search as SearchIcon,
-  DarkMode,
-  LightMode,
-  Login,
-} from "@mui/icons-material";
+import { Search as SearchIcon, DarkMode, LightMode, Login } from "@mui/icons-material";
 import Image from "next/image";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
@@ -66,15 +61,15 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-// 🧭 MAIN HEADER
-const Header = () => {
+// ✅ Accept a callback from parent
+const Header = ({ onLoginClick }: { onLoginClick: () => void }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const mode = useSelector((state: RootState) => state.theme.mode);
   const isLight = mode === "light";
 
   const handleThemeChange = () => {
-    dispatch(toggleMode()); // ✅ Update global theme
+    dispatch(toggleMode());
   };
 
   return (
@@ -116,7 +111,7 @@ const Header = () => {
           </Link>
         </Box>
 
-        {/* Right: Search + Theme + Login */}
+        {/* Right */}
         <Box display="flex" alignItems="center" gap={1}>
           <Search>
             <SearchIconWrapper>
@@ -125,16 +120,17 @@ const Header = () => {
             <StyledInputBase placeholder="Search stocks..." />
           </Search>
 
-          {/* ✅ Global theme toggle */}
           <IconButton color="inherit" onClick={handleThemeChange}>
             {isLight ? <DarkMode /> : <LightMode />}
           </IconButton>
 
+          {/* ✅ Calls parent function instead of redirect */}
           <Button
             variant="contained"
             color="primary"
             startIcon={<Login />}
             sx={{ textTransform: "none", borderRadius: 2 }}
+            onClick={onLoginClick}
           >
             Login
           </Button>
