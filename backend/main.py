@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import psycopg2
 import pandas as pd
-import math
 import numpy as np
+import psycopg2
+from db.full_pipeline_stock_info import run_stock_info_pipeline
 
 app = FastAPI()
 
@@ -15,7 +15,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Database configuration ---
 DB_CONFIG = {
     "dbname": "stock_data",
     "user": "postgres",
@@ -49,44 +48,33 @@ def resample_data(df: pd.DataFrame, timeframe: str) -> pd.DataFrame:
     df = df.sort_values("date")
     df.set_index("date", inplace=True)
 
-    # Define lookback windows
     days_map = {
-        "1D": 1,
-        "1W": 7,
-        "1M": 30,
-        "6M": 180,
-        "1Y": 365,
-        "3Y": 1095,
-        "5Y": 1825,
-        "ALL": None,
+        "1D": 1, "1W": 7, "1M": 30,
+        "6M": 180, "1Y": 365, "3Y": 1095,
+        "5Y": 1825, "ALL": None
     }
 
-    # Handle timeframe safely
     if timeframe in ["1W", "1M"]:
         rule = "W" if timeframe == "1W" else "M"
         df_resampled = df.resample(rule).agg({
-            "open": "first",
-            "high": "max",
-            "low": "min",
-            "close": "last"
+            "open": "first", "high": "max",
+            "low": "min", "close": "last"
         })
     elif timeframe in days_map and days_map[timeframe]:
         df_resampled = df.tail(days_map[timeframe])
     else:
         df_resampled = df.copy()
 
-    # --- Trend metrics ---
     df_resampled["avg_price"] = (df_resampled["high"] + df_resampled["low"]) / 2
     df_resampled["price_change"] = df_resampled["close"].pct_change(fill_method=None) * 100
     df_resampled["price_change"] = df_resampled["price_change"].replace([np.inf, -np.inf, np.nan], 0)
     df_resampled["rolling_mean_20"] = df_resampled["close"].rolling(window=20, min_periods=1).mean()
 
     df_resampled.reset_index(inplace=True)
-    df_resampled = clean_dataframe(df_resampled)
+    return clean_dataframe(df_resampled)
 
-    return df_resampled
+# --- API endpoints ---
 
-# --- API endpoint ---
 @app.get("/api/stocks")
 def get_stock(symbol: str = "NEPSE", timeframe: str = "1Y"):
     df = get_stock_data(symbol)
@@ -94,3 +82,8 @@ def get_stock(symbol: str = "NEPSE", timeframe: str = "1Y"):
         return []
     df_filtered = resample_data(df, timeframe)
     return df_filtered.to_dict(orient="records")
+
+@app.get("/api/update-stock-info")
+def update_stock_info():
+    df = run_stock_info_pipeline()
+    return {"message": "Stock info updated successfully", "records": len(df)}
