@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Button, TextField, Typography, Paper, IconButton } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  IconButton,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 interface Props {
@@ -31,13 +38,20 @@ export default function LoginForm({ closeModal, switchToSignup }: Props) {
       }}
     >
       {/* Close button */}
-      <IconButton onClick={closeModal} sx={{ position: "absolute", top: 8, right: 8 }}>
+      <IconButton
+        onClick={closeModal}
+        sx={{ position: "absolute", top: 8, right: 8 }}
+      >
         <CloseIcon />
       </IconButton>
 
       {/* Logo */}
       <Box display="flex" justifyContent="center" mb={2}>
-        <img src="/assets/logo.png" alt="Logo" style={{ width: 90, height: 90 }} />
+        <img
+          src="/assets/logo.png"
+          alt="Logo"
+          style={{ width: 90, height: 90 }}
+        />
       </Box>
 
       {/* Heading */}
@@ -46,7 +60,11 @@ export default function LoginForm({ closeModal, switchToSignup }: Props) {
         fontWeight="bold"
         textAlign="center"
         mb={3}
-        sx={{ background: "linear-gradient(90deg, #6e4adb, #5936d3)", WebkitBackgroundClip: "text", color: "transparent" }}
+        sx={{
+          background: "linear-gradient(90deg, #6e4adb, #5936d3)",
+          WebkitBackgroundClip: "text",
+          color: "transparent",
+        }}
       >
         Login
       </Typography>
@@ -89,7 +107,13 @@ export default function LoginForm({ closeModal, switchToSignup }: Props) {
       <Typography variant="body2" textAlign="center" mt={2}>
         Don't have an account?{" "}
         <span
-          style={{ cursor: "pointer", fontWeight: 600, background: "linear-gradient(90deg, #6e4adb, #5936d3)", WebkitBackgroundClip: "text", color: "transparent" }}
+          style={{
+            cursor: "pointer",
+            fontWeight: 600,
+            background: "linear-gradient(90deg, #6e4adb, #5936d3)",
+            WebkitBackgroundClip: "text",
+            color: "transparent",
+          }}
           onClick={switchToSignup}
         >
           Sign Up

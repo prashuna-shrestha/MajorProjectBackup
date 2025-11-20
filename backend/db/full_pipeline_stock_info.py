@@ -113,7 +113,7 @@ def run_stock_info_pipeline(
             values
         )
         conn.commit()
-        print("✅ Stock info table updated successfully!")
+        print(" Stock info table updated successfully!")
     except Exception as e:
         print("Error inserting into PostgreSQL:", e)
     finally:

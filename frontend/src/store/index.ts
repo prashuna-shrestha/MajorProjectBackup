@@ -3,8 +3,6 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
 import themeReducer from "./themeSlice";
 
-
-
 export const store = configureStore({
   reducer: {
     theme: themeReducer,

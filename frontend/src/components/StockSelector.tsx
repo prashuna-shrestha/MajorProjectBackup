@@ -8,7 +8,10 @@ interface StockSelectorProps {
   onSelect: (symbol: string) => void;
 }
 
-export default function StockSelector({ symbols, onSelect }: StockSelectorProps) {
+export default function StockSelector({
+  symbols,
+  onSelect,
+}: StockSelectorProps) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
 

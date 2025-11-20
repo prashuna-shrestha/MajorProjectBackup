@@ -25,7 +25,7 @@ import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { toggleMode } from "@/store/themeSlice";
-import { useRouter } from "next/navigation";   // <-- ✅ ADD THIS
+import { useRouter } from "next/navigation"; // <-- ✅ ADD THIS
 
 interface HeaderProps {
   onLoginClick?: () => void;
@@ -37,7 +37,7 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
   const mode = useSelector((state: RootState) => state.theme.mode);
   const isLight = mode === "light";
 
-  const router = useRouter();   // <-- ✅ ADD THIS
+  const router = useRouter(); // <-- ✅ ADD THIS
 
   const handleThemeChange = () => dispatch(toggleMode());
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -59,29 +59,56 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
   ];
 
   return (
-    <AppBar position="static" sx={{ background: headerGradient, color: "white", boxShadow: 4 }}>
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 1.2, px: { xs: 2, md: 4 } }}>
-        
+    <AppBar
+      position="static"
+      sx={{ background: headerGradient, color: "white", boxShadow: 4 }}
+    >
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          py: 1.2,
+          px: { xs: 2, md: 4 },
+        }}
+      >
         {/* Left Section */}
         <Box display="flex" alignItems="center" gap={2}>
-          <Image src="/assets/logo.png" alt="Logo" width={55} height={55} style={{ cursor: "pointer" }} />
+          <Image
+            src="/assets/logo.png"
+            alt="Logo"
+            width={55}
+            height={55}
+            style={{ cursor: "pointer" }}
+          />
 
-          <IconButton color="inherit" sx={{ display: { xs: "flex", md: "none" } }} onClick={toggleDrawer}>
+          <IconButton
+            color="inherit"
+            sx={{ display: { xs: "flex", md: "none" } }}
+            onClick={toggleDrawer}
+          >
             <MenuIcon />
           </IconButton>
 
           {/* Desktop Nav Links */}
-          <Box display={{ xs: "none", md: "flex" }} alignItems="center" gap={3} ml={2}>
+          <Box
+            display={{ xs: "none", md: "flex" }}
+            alignItems="center"
+            gap={3}
+            ml={2}
+          >
             {navLinks.map((item) => (
               <Typography
                 key={item.label}
                 variant="body1"
-                onClick={() => router.push(item.href)}   // <-- ✅ CLICK TO NAVIGATE
+                onClick={() => router.push(item.href)} // <-- ✅ CLICK TO NAVIGATE
                 sx={{
                   cursor: "pointer",
                   fontWeight: 500,
                   transition: "0.3s",
-                  "&:hover": { color: navHoverColor, textShadow: "0px 0px 5px #fff" },
+                  "&:hover": {
+                    color: navHoverColor,
+                    textShadow: "0px 0px 5px #fff",
+                  },
                 }}
               >
                 {item.label}
@@ -139,9 +166,24 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
 
         {/* Drawer Mobile Menu */}
         <Drawer anchor="left" open={mobileOpen} onClose={toggleDrawer}>
-          <Box sx={{ width: 250, background: headerGradient, height: "100%", color: "white", p: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6" fontWeight={600}>FinSight</Typography>
+          <Box
+            sx={{
+              width: 250,
+              background: headerGradient,
+              height: "100%",
+              color: "white",
+              p: 2,
+            }}
+          >
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Typography variant="h6" fontWeight={600}>
+                FinSight
+              </Typography>
               <IconButton color="inherit" onClick={toggleDrawer}>
                 <CloseIcon />
               </IconButton>
@@ -154,7 +196,7 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
                 <ListItem
                   key={item.label}
                   onClick={() => {
-                    router.push(item.href);   // <-- ✅ MOBILE NAVIGATION
+                    router.push(item.href); // <-- ✅ MOBILE NAVIGATION
                     toggleDrawer();
                   }}
                   sx={{ cursor: "pointer" }}
@@ -165,11 +207,23 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
 
               <Divider sx={{ my: 1, bgcolor: "rgba(255,255,255,0.2)" }} />
 
-              <ListItem onClick={() => { onLoginClick?.(); toggleDrawer(); }} sx={{ cursor: "pointer" }}>
+              <ListItem
+                onClick={() => {
+                  onLoginClick?.();
+                  toggleDrawer();
+                }}
+                sx={{ cursor: "pointer" }}
+              >
                 <ListItemText primary="Login" />
               </ListItem>
 
-              <ListItem onClick={() => { onSignupClick?.(); toggleDrawer(); }} sx={{ cursor: "pointer" }}>
+              <ListItem
+                onClick={() => {
+                  onSignupClick?.();
+                  toggleDrawer();
+                }}
+                sx={{ cursor: "pointer" }}
+              >
                 <ListItemText primary="Sign Up" />
               </ListItem>
             </List>
