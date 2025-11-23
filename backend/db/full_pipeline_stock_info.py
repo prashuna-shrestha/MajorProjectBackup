@@ -20,8 +20,7 @@ def run_stock_info_pipeline(
 ):
     """
     Reads merged stock CSV and company list, merges them, saves clean CSV,
-    and inserts into PostgreSQL table stock_info.
-    Includes full debug info to ensure insertion works.
+    inserts into PostgreSQL table stock_info, and returns unmatched symbols.
     """
     # --- Default paths ---
     base_path = Path(__file__).parent
@@ -35,7 +34,7 @@ def run_stock_info_pipeline(
     print(f"Reading merged stock CSV from: {merged_stock_path}")
     print(f"Reading company list CSV from: {company_list_path}")
 
-    # --- Load CSVs with safe check ---
+    # --- Load CSVs ---
     try:
         merged_df = pd.read_csv(merged_stock_path)
     except FileNotFoundError:
@@ -59,8 +58,8 @@ def run_stock_info_pipeline(
     merged_df['symbol'] = merged_df['symbol'].astype(str).str.strip().str.upper()
     company_df['symbol'] = company_df['symbol'].astype(str).str.strip().str.upper()
 
-    print("Symbols from merged CSV:", merged_df['symbol'].unique()[:10])
-    print("Symbols from company list:", company_df['symbol'].unique()[:10])
+    print("Symbols from merged CSV (sample):", merged_df['symbol'].unique()[:10])
+    print("Symbols from company list (sample):", company_df['symbol'].unique()[:10])
 
     # --- Merge company info ---
     merged_info = pd.merge(
@@ -70,11 +69,13 @@ def run_stock_info_pipeline(
         how='left'
     )
 
-    # Check missing symbols
-    missing_companies = merged_info[merged_info['company_name'].isna()]
-    if not missing_companies.empty:
-        print("Missing symbols detected in merge:")
-        print(missing_companies)
+    # --- Identify unmatched symbols ---
+    unmatched_symbols = merged_info[merged_info['company_name'].isna()]
+    if not unmatched_symbols.empty:
+        print("❌ Symbols in merged CSV not found in CompanyList.csv:")
+        print(unmatched_symbols['symbol'].tolist())
+    else:
+        print("All symbols have matching company info.")
 
     # Optional: manual additions
     if manual_add is None:
@@ -85,13 +86,13 @@ def run_stock_info_pipeline(
         ignore_index=True
     )
 
-    print("Final company info to insert:")
+    print("Final company info to insert (sample):")
     print(final_company_info.head())
     print("Number of rows to insert:", len(final_company_info))
 
     if final_company_info.empty:
         print("WARNING: No company info to insert. Aborting DB insert.")
-        return final_company_info
+        return final_company_info, unmatched_symbols
 
     # --- Save clean CSV ---
     final_company_info.to_csv(output_path, index=False)
@@ -122,4 +123,4 @@ def run_stock_info_pipeline(
         if 'conn' in locals():
             conn.close()
 
-    return final_company_info
+    return final_company_info, unmatched_symbols
