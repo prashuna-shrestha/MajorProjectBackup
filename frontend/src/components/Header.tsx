@@ -13,8 +13,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  Select,
-  MenuItem,
   TextField,
   InputAdornment,
   Paper,
@@ -26,8 +24,7 @@ import {
   Menu as MenuIcon,
   Close as CloseIcon,
   Search as SearchIcon,
-  Star,
-  StarBorder,
+  ArrowDropDown as ArrowDropDownIcon,
 } from "@mui/icons-material";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
@@ -71,61 +68,30 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
     { label: "Analysis", href: "/analysis" },
   ];
 
-  // ---------- FIX: consistent backend URL ----------
   const BACKEND_URL = "http://localhost:8000";
 
   // ---------------- Search State ----------------
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [symbolInput, setSymbolInput] = useState("");
-  const [suggestions, setSuggestions] = useState<StockSuggestion[]>([]);
-  const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [searchSuggestions, setSearchSuggestions] = useState<StockSuggestion[]>(
+    [],
+  );
+  const [dropdownSuggestions, setDropdownSuggestions] = useState<
+    StockSuggestion[]
+  >([]);
 
-  // Load categories from backend
+  // Fetch search suggestions when typing
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/categories`)
-      .then((res) => res.json())
-      .then((data) => setCategories(data.categories || []));
-  }, []);
-
-  // Load watchlist from localStorage
-  useEffect(() => {
-    setWatchlist(JSON.parse(localStorage.getItem("watchlist") || "[]"));
-  }, []);
-
-  const toggleWatch = (symbol: string) => {
-    const updated = watchlist.includes(symbol)
-      ? watchlist.filter((s) => s !== symbol)
-      : [...watchlist, symbol];
-    setWatchlist(updated);
-    localStorage.setItem("watchlist", JSON.stringify(updated));
-  };
-
-  // Fetch suggestions
-  useEffect(() => {
-    if (!symbolInput && !selectedCategory) {
-      setSuggestions([]);
+    if (!symbolInput) {
+      setSearchSuggestions([]);
       return;
     }
-
-    const url = selectedCategory
-      ? `${BACKEND_URL}/api/companies-by-category?category=${selectedCategory}`
-      : `${BACKEND_URL}/api/search-suggestions?q=${symbolInput}`;
-
-    fetch(url)
+    fetch(`${BACKEND_URL}/api/search-suggestions?q=${symbolInput}`)
       .then((res) => res.json())
-      .then((data) => {
-        if (selectedCategory && symbolInput) {
-          data = data.filter((s: StockSuggestion) =>
-            s.symbol.toLowerCase().includes(symbolInput.toLowerCase()) ||
-            s.company_name.toLowerCase().includes(symbolInput.toLowerCase())
-          );
-        }
-        setSuggestions(data);
-      });
-  }, [symbolInput, selectedCategory]);
+      .then((data) => setSearchSuggestions(data));
+  }, [symbolInput]);
 
   // ---------------- END Search ----------------
+
   return (
     <AppBar
       position="static"
@@ -187,7 +153,7 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
           </Box>
         </Box>
 
-        {/* Center Section - Search */}
+        {/* Center Search + Dropdown */}
         <Box
           sx={{
             width: { xs: "100%", md: "40%" },
@@ -197,29 +163,24 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
             mt: { xs: 1, md: 0 },
           }}
         >
-          <Box display="flex" gap={1}>
-            <Select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              size="small"
-              sx={{ bgcolor: "#fff", borderRadius: 1, minWidth: 80 }}
-            >
-              <MenuItem value="">All</MenuItem>
-              {categories.map((cat) => (
-                <MenuItem key={cat} value={cat}>
-                  {cat}
-                </MenuItem>
-              ))}
-            </Select>
-
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              bgcolor: "#fff",
+              borderRadius: 1,
+              pl: 1,
+            }}
+          >
+            {/* Search input */}
             <TextField
               fullWidth
-              size="small"
+              variant="standard"
               placeholder="Search stock or company"
               value={symbolInput}
               onChange={(e) => setSymbolInput(e.target.value)}
-              sx={{ bgcolor: "#fff", borderRadius: 1 }}
               InputProps={{
+                disableUnderline: true,
                 startAdornment: (
                   <InputAdornment position="start">
                     <SearchIcon />
@@ -227,45 +188,117 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
                 ),
               }}
             />
+
+            {/* Dropdown icon */}
+            <IconButton
+              size="small"
+              sx={{ ml: 1 }}
+              onClick={() => {
+                // Fetch all stocks for dropdown
+                fetch(`${BACKEND_URL}/api/all-stocks`)
+                  .then((res) => res.json())
+                  .then((data) => setDropdownSuggestions(data));
+              }}
+            >
+              <ArrowDropDownIcon />
+            </IconButton>
           </Box>
 
-          {/* Suggestions Dropdown */}
-          {suggestions.length > 0 && (
+          {/* Dropdown list showing all stocks */}
+          {dropdownSuggestions.length > 0 && !symbolInput && (
             <Paper
               sx={{
                 position: "absolute",
                 width: "100%",
+                top: "100%",
                 mt: 1,
-                zIndex: 99,
+                zIndex: 2000,
                 maxHeight: 300,
                 overflowY: "auto",
+                borderRadius: 1,
+                boxShadow: "0px 4px 12px rgba(0,0,0,0.15)",
               }}
             >
-              {suggestions.map((s) => (
+              {dropdownSuggestions.map((s) => (
                 <Box
                   key={s.symbol}
                   display="flex"
                   justifyContent="space-between"
                   alignItems="center"
-                  p={1}
-                  sx={{ cursor: "pointer", "&:hover": { bgcolor: alpha("#000", 0.05) } }}
+                  p={1.2}
+                  sx={{
+                    cursor: "pointer",
+                    transition: "0.2s",
+                    "&:hover": { bgcolor: alpha("#000", 0.05) },
+                  }}
                   onClick={() => router.push(`/analysis?symbol=${s.symbol}`)}
                 >
                   <Box>
-                    <Typography fontWeight={600}>{s.symbol}</Typography>
-                    <Typography variant="caption">{s.company_name}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {s.category}
+                    <Typography fontWeight={700} fontSize={14}>
+                      {s.symbol}
+                    </Typography>
+                    <Typography fontSize={12} color="text.secondary">
+                      {s.company_name}
                     </Typography>
                   </Box>
-                  <IconButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleWatch(s.symbol);
-                    }}
+
+                  <Typography
+                    fontSize={12}
+                    color="gray"
+                    sx={{ whiteSpace: "nowrap", opacity: 0.7 }}
                   >
-                    {watchlist.includes(s.symbol) ? <Star /> : <StarBorder />}
-                  </IconButton>
+                    {s.category}
+                  </Typography>
+                </Box>
+              ))}
+            </Paper>
+          )}
+
+          {/* Search suggestions */}
+          {searchSuggestions.length > 0 && symbolInput && (
+            <Paper
+              sx={{
+                position: "absolute",
+                width: "100%",
+                top: "100%",
+                mt: 1,
+                zIndex: 2000,
+                maxHeight: 300,
+                overflowY: "auto",
+                borderRadius: 1,
+                boxShadow: "0px 4px 12px rgba(0,0,0,0.15)",
+              }}
+            >
+              {searchSuggestions.map((s) => (
+                <Box
+                  key={s.symbol}
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  p={1.2}
+                  sx={{
+                    cursor: "pointer",
+                    transition: "0.2s",
+                    "&:hover": { bgcolor: alpha("#000", 0.05) },
+                  }}
+                  onClick={() => router.push(`/analysis?symbol=${s.symbol}`)}
+                >
+                  <Box>
+                    <Typography fontWeight={700} fontSize={14}>
+                      {s.symbol}
+                    </Typography>
+                    <Typography fontSize={12} color="text.secondary">
+                      {s.company_name}
+                    </Typography>
+                  </Box>
+
+                  <Typography
+                    fontSize={12}
+                    color="gray"
+                    sx={{ whiteSpace: "nowrap", opacity: 0.7 }}
+                  >
+                    {s.category}
+                  </Typography>
                 </Box>
               ))}
             </Paper>
@@ -330,7 +363,12 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
               p: 2,
             }}
           >
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
               <Typography variant="h6" fontWeight={600}>
                 FinSight
               </Typography>

@@ -23,7 +23,7 @@ const AnalysisPage: React.FC = () => {
     try {
       setLoading(true);
       const res = await fetch(
-        `${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}`
+        `${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}`,
       );
 
       if (!res.ok) {
@@ -48,9 +48,7 @@ const AnalysisPage: React.FC = () => {
 
   const handleToggle = (trend: string) => {
     setSelectedTrends((prev) =>
-      prev.includes(trend)
-        ? prev.filter((t) => t !== trend)
-        : [...prev, trend]
+      prev.includes(trend) ? prev.filter((t) => t !== trend) : [...prev, trend],
     );
   };
 
@@ -58,7 +56,9 @@ const AnalysisPage: React.FC = () => {
   if (loading) return <div>Loading chart...</div>;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <div
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+    >
       {/* Header */}
       <Header />
 
