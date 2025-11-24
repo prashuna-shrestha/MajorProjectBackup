@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -13,6 +13,11 @@ import {
   List,
   ListItem,
   ListItemText,
+  Select,
+  MenuItem,
+  TextField,
+  InputAdornment,
+  Paper,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import {
@@ -20,24 +25,32 @@ import {
   LightMode,
   Menu as MenuIcon,
   Close as CloseIcon,
+  Search as SearchIcon,
+  Star,
+  StarBorder,
 } from "@mui/icons-material";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { toggleMode } from "@/store/themeSlice";
-import { useRouter } from "next/navigation"; // <-- ✅ ADD THIS
+import { useRouter } from "next/navigation";
 
 interface HeaderProps {
   onLoginClick?: () => void;
   onSignupClick?: () => void;
 }
 
+interface StockSuggestion {
+  symbol: string;
+  company_name: string;
+  category: string;
+}
+
 export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
   const dispatch = useDispatch();
   const mode = useSelector((state: RootState) => state.theme.mode);
   const isLight = mode === "light";
-
-  const router = useRouter(); // <-- ✅ ADD THIS
+  const router = useRouter();
 
   const handleThemeChange = () => dispatch(toggleMode());
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -58,6 +71,61 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
     { label: "Analysis", href: "/analysis" },
   ];
 
+  // ---------- FIX: consistent backend URL ----------
+  const BACKEND_URL = "http://localhost:8000";
+
+  // ---------------- Search State ----------------
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [symbolInput, setSymbolInput] = useState("");
+  const [suggestions, setSuggestions] = useState<StockSuggestion[]>([]);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
+
+  // Load categories from backend
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/categories`)
+      .then((res) => res.json())
+      .then((data) => setCategories(data.categories || []));
+  }, []);
+
+  // Load watchlist from localStorage
+  useEffect(() => {
+    setWatchlist(JSON.parse(localStorage.getItem("watchlist") || "[]"));
+  }, []);
+
+  const toggleWatch = (symbol: string) => {
+    const updated = watchlist.includes(symbol)
+      ? watchlist.filter((s) => s !== symbol)
+      : [...watchlist, symbol];
+    setWatchlist(updated);
+    localStorage.setItem("watchlist", JSON.stringify(updated));
+  };
+
+  // Fetch suggestions
+  useEffect(() => {
+    if (!symbolInput && !selectedCategory) {
+      setSuggestions([]);
+      return;
+    }
+
+    const url = selectedCategory
+      ? `${BACKEND_URL}/api/companies-by-category?category=${selectedCategory}`
+      : `${BACKEND_URL}/api/search-suggestions?q=${symbolInput}`;
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (selectedCategory && symbolInput) {
+          data = data.filter((s: StockSuggestion) =>
+            s.symbol.toLowerCase().includes(symbolInput.toLowerCase()) ||
+            s.company_name.toLowerCase().includes(symbolInput.toLowerCase())
+          );
+        }
+        setSuggestions(data);
+      });
+  }, [symbolInput, selectedCategory]);
+
+  // ---------------- END Search ----------------
   return (
     <AppBar
       position="static"
@@ -67,8 +135,10 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          flexWrap: "wrap",
           py: 1.2,
           px: { xs: 2, md: 4 },
+          gap: 1.5,
         }}
       >
         {/* Left Section */}
@@ -100,7 +170,7 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
               <Typography
                 key={item.label}
                 variant="body1"
-                onClick={() => router.push(item.href)} // <-- ✅ CLICK TO NAVIGATE
+                onClick={() => router.push(item.href)}
                 sx={{
                   cursor: "pointer",
                   fontWeight: 500,
@@ -115,6 +185,91 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
               </Typography>
             ))}
           </Box>
+        </Box>
+
+        {/* Center Section - Search */}
+        <Box
+          sx={{
+            width: { xs: "100%", md: "40%" },
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            mt: { xs: 1, md: 0 },
+          }}
+        >
+          <Box display="flex" gap={1}>
+            <Select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              size="small"
+              sx={{ bgcolor: "#fff", borderRadius: 1, minWidth: 80 }}
+            >
+              <MenuItem value="">All</MenuItem>
+              {categories.map((cat) => (
+                <MenuItem key={cat} value={cat}>
+                  {cat}
+                </MenuItem>
+              ))}
+            </Select>
+
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search stock or company"
+              value={symbolInput}
+              onChange={(e) => setSymbolInput(e.target.value)}
+              sx={{ bgcolor: "#fff", borderRadius: 1 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
+
+          {/* Suggestions Dropdown */}
+          {suggestions.length > 0 && (
+            <Paper
+              sx={{
+                position: "absolute",
+                width: "100%",
+                mt: 1,
+                zIndex: 99,
+                maxHeight: 300,
+                overflowY: "auto",
+              }}
+            >
+              {suggestions.map((s) => (
+                <Box
+                  key={s.symbol}
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  p={1}
+                  sx={{ cursor: "pointer", "&:hover": { bgcolor: alpha("#000", 0.05) } }}
+                  onClick={() => router.push(`/analysis?symbol=${s.symbol}`)}
+                >
+                  <Box>
+                    <Typography fontWeight={600}>{s.symbol}</Typography>
+                    <Typography variant="caption">{s.company_name}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {s.category}
+                    </Typography>
+                  </Box>
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleWatch(s.symbol);
+                    }}
+                  >
+                    {watchlist.includes(s.symbol) ? <Star /> : <StarBorder />}
+                  </IconButton>
+                </Box>
+              ))}
+            </Paper>
+          )}
         </Box>
 
         {/* Right Section */}
@@ -164,7 +319,7 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
           </Button>
         </Box>
 
-        {/* Drawer Mobile Menu */}
+        {/* Drawer */}
         <Drawer anchor="left" open={mobileOpen} onClose={toggleDrawer}>
           <Box
             sx={{
@@ -175,12 +330,7 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
               p: 2,
             }}
           >
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={2}
-            >
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6" fontWeight={600}>
                 FinSight
               </Typography>
@@ -196,7 +346,7 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
                 <ListItem
                   key={item.label}
                   onClick={() => {
-                    router.push(item.href); // <-- ✅ MOBILE NAVIGATION
+                    router.push(item.href);
                     toggleDrawer();
                   }}
                   sx={{ cursor: "pointer" }}
