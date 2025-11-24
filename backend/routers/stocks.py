@@ -45,3 +45,20 @@ def companies_by_category(category: str):
     conn.close()
 
     return [{"symbol": r[0], "company_name": r[1], "category": r[2]} for r in rows]
+
+
+@router.get("/all-stocks")
+def get_all_stocks():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT symbol, company_name, category FROM stock_info ORDER BY symbol ASC")
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return [
+        {"symbol": r[0], "company_name": r[1], "category": r[2]}
+        for r in rows
+    ]
