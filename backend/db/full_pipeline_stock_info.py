@@ -1,4 +1,3 @@
-# full_pipeline_stock_info.py
 from pathlib import Path
 import pandas as pd
 import psycopg2
@@ -19,9 +18,9 @@ def run_stock_info_pipeline(
     manual_add=None
 ):
     """
-    Reads merged stock CSV and company list, merges them, saves clean CSV,
-    and inserts into PostgreSQL table stock_info.
-    Includes full debug info to ensure insertion works.
+    Reads merged stock CSV and company list, merges them,
+    saves clean CSV, inserts only matched symbols into PostgreSQL.
+    Unmatched symbols are ignored.
     """
     # --- Default paths ---
     base_path = Path(__file__).parent
@@ -32,26 +31,11 @@ def run_stock_info_pipeline(
     if output_path is None:
         output_path = base_path / "../../data/clean/clean_stock_info.csv"
 
-    print(f"Reading merged stock CSV from: {merged_stock_path}")
-    print(f"Reading company list CSV from: {company_list_path}")
+    # --- Load CSVs ---
+    merged_df = pd.read_csv(merged_stock_path)
+    company_df = pd.read_csv(company_list_path)
 
-    # --- Load CSVs with safe check ---
-    try:
-        merged_df = pd.read_csv(merged_stock_path)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Merged stock CSV not found at {merged_stock_path}")
-
-    try:
-        company_df = pd.read_csv(company_list_path)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Company list CSV not found at {company_list_path}")
-
-    print("Merged CSV head:")
-    print(merged_df.head())
-    print("Company list head:")
-    print(company_df.head())
-
-    # --- Prepare company info ---
+    # Prepare company info
     company_df = company_df[['Symbol', 'Company Name', 'Sector']]
     company_df.columns = ['symbol', 'company_name', 'category']
 
@@ -59,10 +43,7 @@ def run_stock_info_pipeline(
     merged_df['symbol'] = merged_df['symbol'].astype(str).str.strip().str.upper()
     company_df['symbol'] = company_df['symbol'].astype(str).str.strip().str.upper()
 
-    print("Symbols from merged CSV:", merged_df['symbol'].unique()[:10])
-    print("Symbols from company list:", company_df['symbol'].unique()[:10])
-
-    # --- Merge company info ---
+    # Merge only symbol list with company info
     merged_info = pd.merge(
         merged_df[['symbol']].drop_duplicates(),
         company_df,
@@ -70,56 +51,44 @@ def run_stock_info_pipeline(
         how='left'
     )
 
-    # Check missing symbols
-    missing_companies = merged_info[merged_info['company_name'].isna()]
-    if not missing_companies.empty:
-        print("Missing symbols detected in merge:")
-        print(missing_companies)
+    # Remove unmatched symbols entirely
+    matched_companies = merged_info.dropna(subset=['company_name'])
 
-    # Optional: manual additions
+    # Optional manual additions
     if manual_add is None:
         manual_add = pd.DataFrame(columns=['symbol', 'company_name', 'category'])
 
     final_company_info = pd.concat(
-        [merged_info.dropna(subset=['company_name']), manual_add],
+        [matched_companies, manual_add],
         ignore_index=True
     )
 
-    print("Final company info to insert:")
-    print(final_company_info.head())
-    print("Number of rows to insert:", len(final_company_info))
-
-    if final_company_info.empty:
-        print("WARNING: No company info to insert. Aborting DB insert.")
-        return final_company_info
-
-    # --- Save clean CSV ---
+    # Save clean CSV
     final_company_info.to_csv(output_path, index=False)
-    print(f"Clean stock info saved to: {output_path}")
 
-    # --- Insert into PostgreSQL ---
-    try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        cur = conn.cursor()
-        values = [tuple(x) for x in final_company_info.to_numpy()]
+    # Insert into PostgreSQL
+    if not final_company_info.empty:
+        try:
+            conn = psycopg2.connect(**DB_CONFIG)
+            cur = conn.cursor()
+            values = [tuple(x) for x in final_company_info.to_numpy()]
 
-        execute_values(
-            cur,
-            """
-            INSERT INTO stock_info (symbol, company_name, category)
-            VALUES %s
-            ON CONFLICT (symbol) DO NOTHING
-            """,
-            values
-        )
-        conn.commit()
-        print(" Stock info table updated successfully!")
-    except Exception as e:
-        print("Error inserting into PostgreSQL:", e)
-    finally:
-        if 'cur' in locals():
+            execute_values(
+                cur,
+                """
+                INSERT INTO stock_info (symbol, company_name, category)
+                VALUES %s
+                ON CONFLICT (symbol) DO NOTHING
+                """,
+                values
+            )
+            conn.commit()
+        except Exception as e:
+            print("Error inserting into PostgreSQL:", e)
+            raise e
+        finally:
             cur.close()
-        if 'conn' in locals():
             conn.close()
 
+    # Return only the final matched info
     return final_company_info
