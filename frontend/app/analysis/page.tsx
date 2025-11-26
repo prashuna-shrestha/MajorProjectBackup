@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import StockChart from "@/components/StockChart";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -8,29 +9,36 @@ import Footer from "@/components/Footer";
 const BACKEND_URL = "http://localhost:8000";
 
 const AnalysisPage: React.FC = () => {
+  const searchParams = useSearchParams();
+  const symbolParam = searchParams.get("symbol") || "NEPSE"; // Default NEPSE
+
   const [data, setData] = useState<any[]>([]);
   const [selectedTrends, setSelectedTrends] = useState<string[]>([]);
   const [timeframe, setTimeframe] = useState("5Y");
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
+  // Fetch stock data whenever symbol or timeframe changes
   useEffect(() => {
     setMounted(true);
-    fetchStockData();
-  }, []);
+    fetchStockData(symbolParam, timeframe);
+  }, [symbolParam, timeframe]);
 
-  const fetchStockData = async (symbol = "NEPSE", tf = timeframe) => {
+  // Reset timeframe when symbol changes
+  useEffect(() => {
+    setTimeframe("5Y");
+  }, [symbolParam]);
+
+  const fetchStockData = async (symbol: string, tf: string) => {
     try {
       setLoading(true);
       const res = await fetch(
-        `${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}`,
+        `${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}`
       );
-
       if (!res.ok) {
         setData([]);
         return;
       }
-
       const json = await res.json();
       setData(Array.isArray(json.records) ? json.records : []);
     } catch (err) {
@@ -43,12 +51,11 @@ const AnalysisPage: React.FC = () => {
 
   const handleFilterChange = (tf: string) => {
     setTimeframe(tf);
-    fetchStockData("NEPSE", tf);
   };
 
   const handleToggle = (trend: string) => {
     setSelectedTrends((prev) =>
-      prev.includes(trend) ? prev.filter((t) => t !== trend) : [...prev, trend],
+      prev.includes(trend) ? prev.filter((t) => t !== trend) : [...prev, trend]
     );
   };
 
@@ -56,15 +63,11 @@ const AnalysisPage: React.FC = () => {
   if (loading) return <div>Loading chart...</div>;
 
   return (
-    <div
-      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-    >
-      {/* Header */}
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Header />
 
-      {/* Main content */}
       <main style={{ padding: "20px", flex: 1 }}>
-        <h2>NEPSE Stock Analysis</h2>
+        <h2>{symbolParam} Stock Analysis</h2>
 
         {/* Timeframe buttons */}
         <div style={{ marginBottom: "10px" }}>
@@ -87,9 +90,7 @@ const AnalysisPage: React.FC = () => {
               onClick={() => handleToggle(trend)}
               style={{
                 marginRight: "5px",
-                background: selectedTrends.includes(trend)
-                  ? "#3b82f6"
-                  : "#e5e7eb",
+                background: selectedTrends.includes(trend) ? "#3b82f6" : "#e5e7eb",
                 color: selectedTrends.includes(trend) ? "white" : "black",
               }}
             >
@@ -98,11 +99,9 @@ const AnalysisPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Stock Chart */}
         <StockChart data={data} selectedTrends={selectedTrends} />
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

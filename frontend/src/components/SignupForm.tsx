@@ -22,8 +22,37 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleSignup = () => {
-    console.log({ fullName, email, password, confirmPassword });
+  const handleSignup = async () => {
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8000/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: fullName,
+          email,
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.detail || "Signup failed");
+        return;
+      }
+
+      alert("Signup successful ✅");
+      switchToLogin();
+    } catch (error) {
+      console.error(error);
+      alert("Server error");
+    }
   };
 
   return (
