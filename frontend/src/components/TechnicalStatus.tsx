@@ -32,13 +32,13 @@ const getTrendIcon = (trend: string) => {
 const getTrendColor = (trend: string) => {
   switch (trend) {
     case "Uptrend":
-      return "#4caf50"; // Green
+      return "#4caf50";
     case "Downtrend":
-      return "#f44336"; // Red
+      return "#f44336";
     case "Sideways":
-      return "#ff9800"; // Orange
+      return "#ff9800";
     default:
-      return "#757575"; // Gray
+      return "#757575";
   }
 };
 
@@ -51,19 +51,21 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    // Check for dark mode preference
     const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains('dark') || 
-                    window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark =
+        document.documentElement.classList.contains("dark") ||
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
       setIsDarkMode(isDark);
     };
-    
+
     checkDarkMode();
-    
-    // Listen for theme changes
+
     const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
     return () => observer.disconnect();
   }, []);
 
@@ -71,7 +73,11 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
     const fetchStatus = async () => {
       try {
         setLoading(true);
-        const res = await fetch(${backendUrl}/api/predict?symbol=${symbol});
+
+        const res = await fetch(
+          `${backendUrl}/api/predict?symbol=${symbol}`
+        );
+
         const json = await res.json();
         setStatus(json);
       } catch (err) {
@@ -103,7 +109,6 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
   const confidence = Math.max(0, Math.min(100, status.confidence ?? 0));
   const needleAngle = -180 + (confidence / 100) * 180;
 
-  // Theme colors
   const themeColors = {
     background: isDarkMode ? "#1a2236" : "#ffffff",
     textPrimary: isDarkMode ? "#e2e8f0" : "#2c3e50",
@@ -113,30 +118,43 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
   };
 
   return (
-    <Box display="flex" flexDirection={{ xs: "column", md: "row" }} width="100%" minHeight="400px" gap={3}>
-      {/* LEFT — Technical Status */}
+    <Box
+      display="flex"
+      flexDirection={{ xs: "column", md: "row" }}
+      width="100%"
+      minHeight="400px"
+      gap={3}
+    >
+      {/* LEFT */}
       <Box flex={1} minWidth={0}>
-        <Paper 
+        <Paper
           elevation={3}
           sx={{
             p: 3,
-            height: "100%",
             minHeight: "400px",
-            background: isDarkMode 
-              ? "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)"
-              : "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)",
+            background: isDarkMode
+              ? "linear-gradient(135deg, #0f172a, #1e293b, #334155)"
+              : "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
             color: "white",
             borderRadius: 3,
-            display: "flex",
-            flexDirection: "column",
-            border: 1px solid ${isDarkMode ? "#4a5568" : "transparent"},
+            border: `1px solid ${isDarkMode ? "#4a5568" : "transparent"}`,
           }}
         >
-          <Typography variant="h5" fontWeight={700} textAlign="center" mb={3} color="white">
+          <Typography
+            variant="h5"
+            fontWeight={700}
+            textAlign="center"
+            mb={3}
+            color="white"
+          >
             📊 Technical Analysis
           </Typography>
 
-          <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }} gap={2}>
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }}
+            gap={2}
+          >
             {[
               { key: "very_short_term", label: "Very Short", period: "1-2 Days" },
               { key: "short_term", label: "Short Term", period: "3-7 Days" },
@@ -147,48 +165,50 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
                 key={key}
                 sx={{
                   p: 2,
-                  background: isDarkMode 
-                    ? "rgba(255, 255, 255, 0.08)" 
+                  background: isDarkMode
+                    ? "rgba(255, 255, 255, 0.08)"
                     : "rgba(255, 255, 255, 0.1)",
                   backdropFilter: "blur(10px)",
-                  border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.2)"},
+                  border: `1px solid ${
+                    isDarkMode
+                      ? "rgba(255,255,255,0.15)"
+                      : "rgba(255,255,255,0.2)"
+                  }`,
                   textAlign: "center",
                   borderRadius: 2,
                   transition: "transform 0.2s",
                   "&:hover": {
                     transform: "translateY(-4px)",
-                    boxShadow: isDarkMode 
-                      ? "0 8px 25px rgba(0, 0, 0, 0.5)"
-                      : "0 8px 25px rgba(0, 0, 0, 0.3)",
                   },
                 }}
               >
-                <Typography
-                  variant="subtitle1"
-                  fontWeight={600}
-                  color="#90caf9"
-                >
+                <Typography variant="subtitle1" fontWeight={600} color="#90caf9">
                   {label}
                 </Typography>
                 <Typography variant="caption" color="#b0bec5">
                   {period}
                 </Typography>
-                <Box display="flex" alignItems="center" justifyContent="center" mt={1}>
+
+                <Box display="flex" justifyContent="center" mt={1}>
                   <Typography
                     variant="h4"
                     sx={{
-                      color: getTrendColor(status[key as keyof PredictionResponse] as string),
+                      color: getTrendColor(
+                        status[key as keyof PredictionResponse]
+                      ),
                       fontWeight: 800,
-                      fontSize: "2rem",
                       mr: 1,
                     }}
                   >
-                    {getTrendIcon(status[key as keyof PredictionResponse] as string)}
+                    {getTrendIcon(status[key as keyof PredictionResponse])}
                   </Typography>
+
                   <Typography
                     variant="h6"
                     sx={{
-                      color: getTrendColor(status[key as keyof PredictionResponse] as string),
+                      color: getTrendColor(
+                        status[key as keyof PredictionResponse]
+                      ),
                       fontWeight: 700,
                     }}
                   >
@@ -199,117 +219,105 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
             ))}
           </Box>
 
-          <Box mt={3} textAlign="center">
-            <Typography variant="body2" color="#90caf9" fontStyle="italic">
-              Analysis based on multiple technical indicators
-            </Typography>
-          </Box>
+          <Typography
+            variant="body2"
+            textAlign="center"
+            mt={3}
+            color="#90caf9"
+            fontStyle="italic"
+          >
+            Analysis based on multiple technical indicators
+          </Typography>
         </Paper>
       </Box>
 
       {/* RIGHT — Confidence Gauge */}
       <Box flex={1} minWidth={0}>
-        <Paper 
+        <Paper
           elevation={3}
           sx={{
             p: 3,
-            height: "100%",
             minHeight: "400px",
             background: themeColors.cardBackground,
             borderRadius: 3,
+            border: `1px solid ${themeColors.borderColor}`,
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            border: 1px solid ${themeColors.borderColor},
           }}
         >
-          <Typography 
-            variant="h5" 
-            fontWeight={700} 
-            mb={2} 
+          <Typography
+            variant="h5"
+            fontWeight={700}
+            mb={2}
             color={themeColors.textPrimary}
           >
             Confidence Level
           </Typography>
 
-          <Box sx={{ 
-            position: "relative", 
-            width: "100%", 
-            height: 320,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center"
-          }}>
-            <svg width="100%" height="320" viewBox="0 0 600 320" preserveAspectRatio="xMidYMid meet">
-              {/* Colored Segments */}
+          <Box
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: 320,
+            }}
+          >
+            <svg
+              width="100%"
+              height="320"
+              viewBox="0 0 600 320"
+              preserveAspectRatio="xMidYMid meet"
+            >
               {[
-                { start: -180, end: -144, color: "#f44336" },   // Red
-                { start: -144, end: -108, color: "#ffeb3b" },   // Yellow
-                { start: -108, end: -72, color: "#2196f3" },    // Blue
-                { start: -72, end: -36, color: "#8bc34a" },     // Light Green
-                { start: -36, end: 0, color: "#4caf50" },       // Dark Green
+                { start: -180, end: -144, color: "#f44336" },
+                { start: -144, end: -108, color: "#ffeb3b" },
+                { start: -108, end: -72, color: "#2196f3" },
+                { start: -72, end: -36, color: "#8bc34a" },
+                { start: -36, end: 0, color: "#4caf50" },
               ].map((segment, i) => {
                 const startRad = (segment.start * Math.PI) / 180;
                 const endRad = (segment.end * Math.PI) / 180;
-                const cx = 300, cy = 260, r = 180;
-                
+
+                const cx = 300,
+                  cy = 260,
+                  r = 180;
+
                 const x1 = cx + Math.cos(startRad) * r;
                 const y1 = cy + Math.sin(startRad) * r;
                 const x2 = cx + Math.cos(endRad) * r;
                 const y2 = cy + Math.sin(endRad) * r;
-                
+
                 return (
                   <path
                     key={i}
-                    d={M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}}
+                    d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
                     fill="none"
                     stroke={segment.color}
                     strokeWidth="30"
-                    strokeLinecap="butt"
                   />
                 );
               })}
 
-              {/* Labels ABOVE the semicircle - FIXED with default values */}
-              {[0, 20, 40, 60, 80, 100].map((value, index) => {
+              {[0, 20, 40, 60, 80, 100].map((value) => {
                 const angle = -180 + (value / 100) * 180;
                 const rad = (angle * Math.PI) / 180;
-                
-                // Default values to prevent undefined
+
                 let labelX = 300;
                 let labelY = 150;
-                
-                switch(value) {
-                  case 0:
-                    labelX = 120;
-                    labelY = 310;
-                    break;
-                  case 20:
-                    labelX = 160;
-                    labelY = 80;
-                    break;
-                  case 40:
-                    labelX = 240;
-                    labelY = 50;
-                    break;
-                  case 60:
-                    labelX = 360;
-                    labelY = 50;
-                    break;
-                  case 80:
-                    labelX = 440;
-                    labelY = 80;
-                    break;
-                  case 100:
-                    labelX = 480;
-                    labelY = 310;
-                    break;
-                }
-                
+
+                const positions: Record<number, [number, number]> = {
+                  0: [120, 310],
+                  20: [160, 80],
+                  40: [240, 50],
+                  60: [360, 50],
+                  80: [440, 80],
+                  100: [480, 310],
+                };
+
+                [labelX, labelY] = positions[value];
+
                 return (
                   <g key={value}>
-                    {/* Tick mark at the boundary */}
                     <line
                       x1={300 + Math.cos(rad) * 170}
                       y1={260 + Math.sin(rad) * 170}
@@ -318,8 +326,6 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
                       stroke={isDarkMode ? "#94a3b8" : "#666"}
                       strokeWidth="3"
                     />
-                    
-                    {/* Label - HIGH ABOVE */}
                     <text
                       x={labelX}
                       y={labelY}
@@ -331,24 +337,10 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
                     >
                       {value}
                     </text>
-                    
-                    {/* Connecting line from tick to label (for visual connection) */}
-                    {![0, 100].includes(value) && (
-                      <line
-                        x1={300 + Math.cos(rad) * 190}
-                        y1={260 + Math.sin(rad) * 190}
-                        x2={labelX}
-                        y2={labelY - 10}
-                        stroke={isDarkMode ? "rgba(148, 163, 184, 0.3)" : "rgba(102, 102, 102, 0.3)"}
-                        strokeWidth="1"
-                        strokeDasharray="4,4"
-                      />
-                    )}
                   </g>
                 );
               })}
 
-              {/* Needle */}
               <line
                 x1="300"
                 y1="260"
@@ -361,7 +353,6 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
               <circle cx="300" cy="260" r="15" fill={themeColors.textPrimary} />
               <circle cx="300" cy="260" r="7" fill="#e91e63" />
 
-              {/* Percentage in center */}
               <text
                 x="300"
                 y="230"
@@ -374,27 +365,6 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
                 {confidence}%
               </text>
             </svg>
-
-            {/* Confidence label */}
-            <Typography 
-              variant="body1" 
-              sx={{
-                position: "absolute",
-                bottom: 20,
-                left: "50%",
-                transform: "translateX(-50%)",
-                color: themeColors.textSecondary,
-                fontWeight: 500,
-                fontSize: "0.9rem",
-                textAlign: "center",
-                whiteSpace: "nowrap",
-                backgroundColor: themeColors.cardBackground,
-                padding: "0 10px",
-                borderRadius: "4px"
-              }}
-            >
-              Model Confidence Score
-            </Typography>
           </Box>
         </Paper>
       </Box>
