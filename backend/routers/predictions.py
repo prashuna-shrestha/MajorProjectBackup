@@ -9,7 +9,7 @@ from utils.preprocessing import scale_data
 from sqlalchemy import create_engine
 
 # Add parent directory to sys.path
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(_file_)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
 from ML.train_lstm import DB_CONFIG
