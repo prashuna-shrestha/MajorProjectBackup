@@ -46,7 +46,7 @@ const AnalysisPage: React.FC = () => {
     try {
       setLoading(true);
       const res = await fetch(
-        `${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}`
+        ${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}
       );
       if (!res.ok) {
         setData([]);
@@ -169,7 +169,11 @@ const AnalysisPage: React.FC = () => {
               display: "flex",
               alignItems: "center",
               gap: "4px",
+<<<<<<< Updated upstream
               border: `1px solid ${isDark ? "rgba(59, 130, 246, 0.4)" : "rgba(59, 130, 246, 0.3)"}`,
+=======
+              border: 1px solid ${isDark ? "rgba(59, 130, 246, 0.4)" : "rgba(59, 130, 246, 0.3)"},
+>>>>>>> Stashed changes
               color: themeStyles.textPrimary
             }}>
               <Clock size={14} />
@@ -191,7 +195,11 @@ const AnalysisPage: React.FC = () => {
           padding: "16px",
           backgroundColor: themeStyles.cardBackground,
           borderRadius: "12px",
+<<<<<<< Updated upstream
           border: `1px solid ${themeStyles.cardBorder}`,
+=======
+          border: 1px solid ${themeStyles.cardBorder},
+>>>>>>> Stashed changes
           boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
           transition: "all 0.3s ease"
         }}>
@@ -238,7 +246,11 @@ const AnalysisPage: React.FC = () => {
                     : {
                         backgroundColor: themeStyles.buttonBackground,
                         color: themeStyles.buttonText,
+<<<<<<< Updated upstream
                         border: `1px solid ${themeStyles.buttonBorder}`
+=======
+                        border: 1px solid ${themeStyles.buttonBorder}
+>>>>>>> Stashed changes
                       })
                 }}
                 onMouseOver={(e) => {
@@ -264,7 +276,11 @@ const AnalysisPage: React.FC = () => {
           padding: "16px",
           backgroundColor: themeStyles.cardBackground,
           borderRadius: "12px",
+<<<<<<< Updated upstream
           border: `1px solid ${themeStyles.cardBorder}`,
+=======
+          border: 1px solid ${themeStyles.cardBorder},
+>>>>>>> Stashed changes
           boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
           transition: "all 0.3s ease"
         }}>
@@ -310,7 +326,11 @@ const AnalysisPage: React.FC = () => {
                     : {
                         backgroundColor: themeStyles.buttonBackground,
                         color: themeStyles.buttonText,
+<<<<<<< Updated upstream
                         border: `1px solid ${themeStyles.buttonBorder}`
+=======
+                        border: 1px solid ${themeStyles.buttonBorder}
+>>>>>>> Stashed changes
                       })
                 }}
                 onMouseOver={(e) => {
@@ -364,12 +384,20 @@ const AnalysisPage: React.FC = () => {
                 ? {
                     backgroundColor: isDark ? "rgba(34, 197, 94, 0.2)" : "rgba(34, 197, 94, 0.1)",
                     color: "#16a34a",
+<<<<<<< Updated upstream
                     border: `1px solid ${isDark ? "rgba(34, 197, 94, 0.4)" : "rgba(34, 197, 94, 0.3)"}`
+=======
+                    border: 1px solid ${isDark ? "rgba(34, 197, 94, 0.4)" : "rgba(34, 197, 94, 0.3)"}
+>>>>>>> Stashed changes
                   }
                 : {
                     backgroundColor: isDark ? "rgba(239, 68, 68, 0.2)" : "rgba(239, 68, 68, 0.1)",
                     color: "#dc2626",
+<<<<<<< Updated upstream
                     border: `1px solid ${isDark ? "rgba(239, 68, 68, 0.4)" : "rgba(239, 68, 68, 0.3)"}`
+=======
+                    border: 1px solid ${isDark ? "rgba(239, 68, 68, 0.4)" : "rgba(239, 68, 68, 0.3)"}
+>>>>>>> Stashed changes
                   })
             }}>
               {data[data.length - 1]?.close > data[0]?.close 
@@ -400,7 +428,11 @@ const AnalysisPage: React.FC = () => {
               backgroundColor: themeStyles.chartBackground,
               borderRadius: "12px", 
               padding: "20px",
+<<<<<<< Updated upstream
               border: `1px solid ${themeStyles.cardBorder}`,
+=======
+              border: 1px solid ${themeStyles.cardBorder},
+>>>>>>> Stashed changes
               boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
               display: "flex",
               flexDirection: "column",
@@ -414,7 +446,11 @@ const AnalysisPage: React.FC = () => {
                 alignItems: "center",
                 marginBottom: "15px",
                 paddingBottom: "10px",
+<<<<<<< Updated upstream
                 borderBottom: `1px solid ${themeStyles.cardBorder}`,
+=======
+                borderBottom: 1px solid ${themeStyles.cardBorder},
+>>>>>>> Stashed changes
                 flexShrink: 0 // Prevents header from shrinking
               }}>
                 <h3 style={{
@@ -463,7 +499,11 @@ const AnalysisPage: React.FC = () => {
                         display: "inline-block",
                         width: "40px",
                         height: "40px",
+<<<<<<< Updated upstream
                         border: `3px solid ${isDark ? '#374151' : '#f1f5f9'}`,
+=======
+                        border: 3px solid ${isDark ? '#374151' : '#f1f5f9'},
+>>>>>>> Stashed changes
                         borderTop: "3px solid #3b82f6",
                         borderRadius: "50%",
                         animation: "spin 1s linear infinite"
@@ -495,7 +535,8 @@ const AnalysisPage: React.FC = () => {
               <div style={{
                 marginTop: "10px",
                 paddingTop: "10px",
-                borderTop: `1px solid ${themeStyles.cardBorder}`,
+                borderTop: 1px solid ${themeStyles.cardBorder},
+
                 fontSize: "12px",
                 color: themeStyles.textSecondary,
                 flexShrink: 0
