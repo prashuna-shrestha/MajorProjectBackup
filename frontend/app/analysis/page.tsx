@@ -4,8 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import StockChart from "@/components/StockChart";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import TechnicalStatus from "@/components/TechnicalStatus";
 import { TrendingUp, BarChart3, Zap, Clock, Activity, Volume2, LineChart } from "lucide-react";
 import { RootState } from "@/store";
@@ -121,8 +119,6 @@ const AnalysisPage: React.FC = () => {
         transition: "background-color 0.3s ease, color 0.3s ease",
       }}
     >
-      <Header />
-
       <main
         style={{
           padding: "20px",
@@ -411,8 +407,6 @@ const AnalysisPage: React.FC = () => {
           </div>
         </div>
       </main>
-
-      <Footer />
 
       <style jsx global>{`
         @keyframes spin {
