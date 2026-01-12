@@ -10,6 +10,10 @@ import {
   IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import { loginSuccess } from "@/store/authSlice";
+import { RootState } from "@/store";
 
 interface Props {
   closeModal: () => void;
@@ -20,9 +24,44 @@ export default function LoginForm({ closeModal, switchToSignup }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    console.log({ email, password });
+  /* ---------- ADDED LOGIC ---------- */
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const redirectPath = useSelector(
+    (state: RootState) => state.auth.redirectPath
+  );
+
+  const handleLogin = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.detail || "Login failed");
+        return;
+      }
+
+      dispatch(
+        loginSuccess({
+          fullName: data.full_name,
+          email: data.email,
+        })
+      );
+
+      closeModal();
+      router.push(redirectPath || "/");
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
   };
+  /* -------------------------------- */
 
   return (
     <Paper
@@ -78,6 +117,7 @@ export default function LoginForm({ closeModal, switchToSignup }: Props) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
+
       <TextField
         fullWidth
         label="Password"

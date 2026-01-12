@@ -22,20 +22,83 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleSignup = async () => {
-    // Check if passwords match
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
+  // Error states
+  const [fullNameError, setFullNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [serverError, setServerError] = useState("");
+
+  // Flag to indicate if the user clicked "Sign Up"
+  const [submitted, setSubmitted] = useState(false);
+
+  // Regex for validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~`]).{8,}$/;
+
+  const validate = () => {
+    let valid = true;
+
+    // Full Name
+    if (!fullName.trim()) {
+      setFullNameError("Full name is required");
+      valid = false;
+    } else {
+      setFullNameError("");
     }
+
+    // Email
+    if (!email.trim()) {
+      setEmailError("Email is required");
+      valid = false;
+    } else if (!emailRegex.test(email.trim())) {
+      setEmailError("Invalid email address");
+      valid = false;
+    } else {
+      setEmailError("");
+    }
+
+    // Password
+    if (!password) {
+      setPasswordError("Password is required");
+      valid = false;
+    } else if (!passwordRegex.test(password)) {
+      setPasswordError(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, special character"
+      );
+      valid = false;
+    } else {
+      setPasswordError("");
+    }
+
+    // Confirm Password
+    if (!confirmPassword) {
+      setConfirmPasswordError("Please confirm your password");
+      valid = false;
+    } else if (password !== confirmPassword) {
+      setConfirmPasswordError("Passwords do not match");
+      valid = false;
+    } else {
+      setConfirmPasswordError("");
+    }
+
+    return valid;
+  };
+
+  const handleSignup = async () => {
+    setSubmitted(true); // mark that user clicked submit
+    setServerError("");
+
+    if (!validate()) return;
 
     try {
       const res = await fetch("http://localhost:8000/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          full_name: fullName,
-          email,
+          full_name: fullName.trim(),
+          email: email.trim(),
           password,
         }),
       });
@@ -43,15 +106,14 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.detail || "Signup failed");
+        setServerError(data.detail || "Signup failed");
         return;
       }
 
-      alert("Signup successful ✅");
-      switchToLogin();
+      switchToLogin(); // Success
     } catch (error) {
       console.error(error);
-      alert("Server error");
+      setServerError("Server error");
     }
   };
 
@@ -108,6 +170,8 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         margin="dense"
         value={fullName}
         onChange={(e) => setFullName(e.target.value)}
+        error={submitted && !!fullNameError}
+        helperText={submitted ? fullNameError : ""}
       />
       <TextField
         fullWidth
@@ -117,6 +181,8 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         margin="dense"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        error={submitted && !!emailError}
+        helperText={submitted ? emailError : ""}
       />
       <TextField
         fullWidth
@@ -127,6 +193,8 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         margin="dense"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        error={submitted && !!passwordError}
+        helperText={submitted ? passwordError : ""}
       />
       <TextField
         fullWidth
@@ -137,7 +205,16 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         margin="dense"
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
+        error={submitted && !!confirmPasswordError}
+        helperText={submitted ? confirmPasswordError : ""}
       />
+
+      {/* Server error */}
+      {submitted && serverError && (
+        <Typography color="error" fontSize={12} mt={1} textAlign="center">
+          {serverError}
+        </Typography>
+      )}
 
       <Button
         fullWidth
