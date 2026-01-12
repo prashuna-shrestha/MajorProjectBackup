@@ -14,16 +14,13 @@ DB_CONFIG = {
 def run_stock_info_pipeline(
     merged_stock_path=None,
     company_list_path=None,
-    output_path=None,
-    manual_add=None
+    output_path=None
 ):
-    """
-    Reads merged stock CSV and company list, merges them,
-    saves clean CSV, inserts only matched symbols into PostgreSQL.
-    Unmatched symbols are ignored.
-    """
-    # --- Default paths ---
+
     base_path = Path(__file__).parent
+
+
+    # Default paths
     if merged_stock_path is None:
         merged_stock_path = base_path / "../../data/clean/merged_stock_nepse.csv"
     if company_list_path is None:
@@ -31,19 +28,19 @@ def run_stock_info_pipeline(
     if output_path is None:
         output_path = base_path / "../../data/clean/clean_stock_info.csv"
 
-    # --- Load CSVs ---
+    # Load CSVs
     merged_df = pd.read_csv(merged_stock_path)
     company_df = pd.read_csv(company_list_path)
 
     # Prepare company info
-    company_df = company_df[['Symbol', 'Company Name', 'Sector']]
+    company_df = company_df[['Symbol', 'Company Name', 'Sector']].copy()
     company_df.columns = ['symbol', 'company_name', 'category']
 
     # Standardize symbols
     merged_df['symbol'] = merged_df['symbol'].astype(str).str.strip().str.upper()
     company_df['symbol'] = company_df['symbol'].astype(str).str.strip().str.upper()
 
-    # Merge only symbol list with company info
+    # Merge
     merged_info = pd.merge(
         merged_df[['symbol']].drop_duplicates(),
         company_df,
@@ -51,44 +48,45 @@ def run_stock_info_pipeline(
         how='left'
     )
 
-    # Remove unmatched symbols entirely
-    matched_companies = merged_info.dropna(subset=['company_name'])
+    # Fill missing values safely
+    merged_info = merged_info.copy()
+    merged_info['company_name'] = merged_info['company_name'].fillna('Unknown Company')
+    merged_info['category'] = merged_info['category'].fillna('Others')
 
-    # Optional manual additions
-    if manual_add is None:
-        manual_add = pd.DataFrame(columns=['symbol', 'company_name', 'category'])
-
-    final_company_info = pd.concat(
-        [matched_companies, manual_add],
-        ignore_index=True
-    )
+    # Drop duplicate symbols to prevent ON CONFLICT error
+    merged_info = merged_info.drop_duplicates(subset=['symbol'])
 
     # Save clean CSV
-    final_company_info.to_csv(output_path, index=False)
+    merged_info.to_csv(output_path, index=False)
+    print(f"Cleaned stock info saved to: {output_path}")
 
-    # Insert into PostgreSQL
-    if not final_company_info.empty:
-        try:
-            conn = psycopg2.connect(**DB_CONFIG)
-            cur = conn.cursor()
-            values = [tuple(x) for x in final_company_info.to_numpy()]
+    # Insert/update PostgreSQL
+    conn = psycopg2.connect(**DB_CONFIG)
+    cur = conn.cursor()
+    values = [tuple(x) for x in merged_info.to_numpy()]
 
-            execute_values(
-                cur,
-                """
-                INSERT INTO stock_info (symbol, company_name, category)
-                VALUES %s
-                ON CONFLICT (symbol) DO NOTHING
-                """,
-                values
-            )
-            conn.commit()
-        except Exception as e:
-            print("Error inserting into PostgreSQL:", e)
-            raise e
-        finally:
-            cur.close()
-            conn.close()
+    # Insert each batch safely
+    batch_size = 100  # avoid huge batches
+    for i in range(0, len(values), batch_size):
+        execute_values(
+            cur,
+            """
+            INSERT INTO stock_info (symbol, company_name, category)
+            VALUES %s
+            ON CONFLICT (symbol)
+            DO UPDATE SET
+                company_name = EXCLUDED.company_name,
+                category = EXCLUDED.category
+            """,
+            values[i:i+batch_size]
+        )
 
-    # Return only the final matched info
-    return final_company_info
+    conn.commit()
+    cur.close()
+    conn.close()
+    print(f"{len(values)} rows inserted/updated in stock_info table.")
+
+    return merged_info
+
+if name == "main":
+    run_stock_info_pipeline()
