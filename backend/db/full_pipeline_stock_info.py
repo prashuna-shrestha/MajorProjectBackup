@@ -6,7 +6,7 @@ from psycopg2.extras import execute_values
 DB_CONFIG = {
     "dbname": "stock_data",
     "user": "postgres",
-    "password": "root",
+    "password": "prashuna123",
     "host": "localhost",
     "port": "5433"
 }
