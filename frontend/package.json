@@ -29,6 +29,7 @@
     "react-financial-charts": "^2.0.1",
     "react-redux": "^9.2.0",
     "react-resize-detector": "^12.3.0",
+    "recharts": "^3.6.0",
     "redux": "^5.0.1"
   },
   "devDependencies": {
