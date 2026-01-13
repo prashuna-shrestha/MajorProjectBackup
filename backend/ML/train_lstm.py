@@ -17,7 +17,7 @@ from utils.preprocessing import scale_data, create_sequences
 DB_CONFIG = {
     "dbname": "stock_data",
     "user": "postgres",
-    "password": "prashuna123",
+    "password": "root",
     "host": "localhost",
     "port": "5433",
 }

@@ -10,7 +10,7 @@ router = APIRouter()
 DB_CONFIG = {
     "dbname": "stock_data",
     "user": "postgres",
-    "password": "prashuna123",
+    "password": "root",
     "host": "localhost",
     "port": "5433",
 }
@@ -50,7 +50,7 @@ def compute_trends(df: pd.DataFrame):
     short = determine_trend(current_close, df["MA5"].iloc[-1])
 
     # Mid-term trend = last 20-day MA
-    mid = determine_trend(current_close, df["MA20"].iloc[-1])
+    mid = determine_trend(current_close, df["MA20"].iloc[-1]) 
 
     # Long-term trend = last 50-day MA
     long = determine_trend(current_close, df["MA50"].iloc[-1])

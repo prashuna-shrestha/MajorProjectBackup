@@ -22,7 +22,7 @@ values = [tuple(row) for row in df.itertuples(index=False, name=None)]
 conn = psycopg2.connect(
     dbname='stock_data',
     user='postgres',
-    password='prashuna123',
+    password='root',
     host='localhost',
     port='5433'
 )
