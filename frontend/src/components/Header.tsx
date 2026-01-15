@@ -282,28 +282,38 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
             >
               {suggestions.map((s) => (
                 <Box
-                  key={s.symbol}
-                  px={2}
-                  py={1.5}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    cursor: "pointer",
-                    borderBottom: isLight ? "1px solid #f0f0f0" : "1px solid #2d2d2d",
-                    "&:hover": { 
-                      bgcolor: isLight ? alpha("#6e4adb", 0.08) : alpha("#fff", 0.05) 
-                    },
-                    "&:last-child": { borderBottom: "none" }
-                  }}
-                  onClick={() => handleSearch(s.symbol)}
-                >
-                  <Typography fontWeight={700} color={isLight ? "primary.main" : "#bb86fc"}>
-                    {s.symbol}
-                  </Typography>
-                  <Typography fontSize={13} color="text.secondary" noWrap>
-                    {s.company_name}
-                  </Typography>
-                </Box>
+  key={s.symbol}
+  px={2}
+  py={1.5}
+  sx={{
+    display: "flex",
+    flexDirection: "column",
+    cursor: "pointer",
+    borderBottom: isLight ? "1px solid #f0f0f0" : "1px solid #2d2d2d",
+    "&:hover": {
+      bgcolor: isLight ? alpha("#6e4adb", 0.08) : alpha("#fff", 0.05),
+    },
+    "&:last-child": { borderBottom: "none" },
+  }}
+  onClick={() => handleSearch(s.symbol)}
+>
+  {/* Top row */}
+  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <Typography fontWeight={700} color={isLight ? "primary.main" : "#bb86fc"}>
+      {s.symbol}
+    </Typography>
+
+    <Typography fontSize={12} color="text.secondary" noWrap>
+      {s.category}
+    </Typography>
+  </Box>
+
+  {/* Bottom row */}
+  <Typography fontSize={13} color="text.secondary" noWrap>
+    {s.company_name}
+  </Typography>
+</Box>
+
               ))}
             </Paper>
           )}

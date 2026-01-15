@@ -10,7 +10,7 @@ router = APIRouter()
 DB_CONFIG = {
     "dbname": "stock_data",
     "user": "postgres",
-    "password": "prashuna123",
+    "password": "root",
     "host": "localhost",
     "port": "5433",
 }
