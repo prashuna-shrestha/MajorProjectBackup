@@ -5,7 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import StockChart from "@/components/StockChart";
 import TechnicalStatus from "@/components/TechnicalStatus";
-import { TrendingUp, BarChart3, Zap, Clock, Activity, Volume2, LineChart } from "lucide-react";
+import {
+  TrendingUp,
+  BarChart3,
+  Zap,
+  Activity,
+  Volume2,
+  LineChart,
+} from "lucide-react";
 import { RootState } from "@/store";
 
 const BACKEND_URL = "http://localhost:8000";
@@ -41,9 +48,7 @@ const AnalysisPage: React.FC = () => {
   const fetchStockData = async (symbol: string, tf: string): Promise<void> => {
     try {
       setLoading(true);
-      const res = await fetch(
-        `${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}`
-      );
+      const res = await fetch(`${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}`);
       if (!res.ok) {
         setData([]);
         return;
@@ -58,9 +63,8 @@ const AnalysisPage: React.FC = () => {
     }
   };
 
-  const handleFilterChange = (tf: string): void => setTimeframe(tf);
-
-  const handleToggle = (trend: string): void =>
+  const handleFilterChange = (tf: string) => setTimeframe(tf);
+  const handleToggle = (trend: string) =>
     setSelectedTrends((prev) =>
       prev.includes(trend) ? prev.filter((t) => t !== trend) : [...prev, trend]
     );
@@ -83,21 +87,21 @@ const AnalysisPage: React.FC = () => {
   };
 
   const timeframeLabels: Record<string, string> = {
-    "1D": "1 Day",
-    "1W": "1 Week",
-    "1M": "1 Month",
-    "6M": "6 Months",
-    "1Y": "1 Year",
-    "5Y": "5 Years"
+    "1D": "1Day",
+    "1W": "1Week",
+    "1M": "1Month",
+    "6M": "6Month",
+    "1Y": "1Year",
+    "5Y": "5Year",
   };
 
   const isDark = theme === "dark";
 
   const themeStyles = {
-    background: isDark ? "#111827" : "#ffffff",
+    background: isDark ? "#111827" : "#f5f5f5",
     textPrimary: isDark ? "#f9fafb" : "#111827",
     textSecondary: isDark ? "#d1d5db" : "#6b7280",
-    cardBackground: isDark ? "#1f2937" : "#f8fafc",
+    cardBackground: isDark ? "#1f2937" : "#ffffff",
     cardBorder: isDark ? "#374151" : "#e2e8f0",
     buttonBackground: isDark ? "#374151" : "#ffffff",
     buttonBorder: isDark ? "#4b5563" : "#cbd5e1",
@@ -119,183 +123,185 @@ const AnalysisPage: React.FC = () => {
         transition: "background-color 0.3s ease, color 0.3s ease",
       }}
     >
-      <main
-        style={{
-          padding: "20px",
-          flex: 1,
-          backgroundColor: themeStyles.background,
-        }}
-      >
-        {/* Header */}
-        <div style={{ marginBottom: "30px" }}>
+      <main style={{ flex: 1, padding: "20px 40px" }}>
+        {/* Hero Section - smaller height */}
+        <div
+          style={{
+            width: "100%",
+            minHeight: "25vh",
+            padding: "30px 20px",
+            marginBottom: "30px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
+            background: isDark
+              ? "linear-gradient(135deg, #111827 0%, #1e1e2f 100%)"
+              : "linear-gradient(135deg, #e0e7ff 0%, #e2e7fc 100%)",
+            color: isDark ? "#f9fafb" : "#111827",
+            borderRadius: "16px",
+          }}
+        >
           <div
             style={{
+              width: "60px",
+              height: "60px",
+              borderRadius: "50%",
+              background: isDark ? "#3b82f6" : "#6366f1",
               display: "flex",
               alignItems: "center",
-              gap: "12px",
-              marginBottom: "8px",
-              flexWrap: "wrap",
+              justifyContent: "center",
+              marginBottom: "15px",
+              boxShadow: isDark
+                ? "0 6px 20px rgba(0,0,0,0.3)"
+                : "0 4px 12px rgba(103,58,183,0.2)",
             }}
           >
-            <div
-              style={{
-                padding: "8px",
-                background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-                borderRadius: "8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <TrendingUp size={24} color="white" />
-            </div>
-            <h2
-              style={{
-                fontSize: "28px",
-                fontWeight: "bold",
-                margin: 0,
-                background: "linear-gradient(90deg, #3b82f6 0%, #10b981 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              {symbolParam} Stock Analysis
-            </h2>
-
-            <span
-              style={{
-                marginLeft: "8px",
-                padding: "4px 12px",
-                backgroundColor: isDark ? "rgba(59,130,246,0.2)" : "rgba(59,130,246,0.1)",
-                borderRadius: "20px",
-                fontSize: "14px",
-                fontWeight: 500,
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                border: `1px solid ${
-                  isDark ? "rgba(59,130,246,0.4)" : "rgba(59,130,246,0.3)"
-                }`,
-                color: themeStyles.textPrimary,
-              }}
-            >
-              <Clock size={14} />
-              {timeframeLabels[timeframe]}
-            </span>
+            <TrendingUp size={28} color="#fff" />
           </div>
+
+          <h1
+            style={{
+              fontSize: "2rem", // smaller
+              fontWeight: 700,
+              marginBottom: "8px",
+              background: "linear-gradient(90deg, #3b82f6 0%, #10b981 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            Stock Trend Prediction System
+          </h1>
 
           <p
             style={{
-              color: themeStyles.textSecondary,
+              fontSize: "1rem",
+              maxWidth: "600px",
+              lineHeight: 1.5,
               margin: 0,
-              fontSize: "14px",
+              color: isDark ? "#d1d5db" : "#4b5563",
             }}
           >
-            Technical analysis with real-time indicators and predictions
+            Analyze Nepal Stock Market trends with technical indicators, and AI-driven predictions. Track, analyze, and predict stock movements with confidence.
           </p>
         </div>
 
-        {/* Timeframe buttons */}
+        {/* Containers row: Timeframe + Indicators */}
         <div
           style={{
-            marginBottom: "20px",
-            padding: "16px",
-            backgroundColor: themeStyles.cardBackground,
-            borderRadius: "12px",
-            border: `1px solid ${themeStyles.cardBorder}`,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <Zap size={18} color="#f59e0b" />
-            <h3 style={{ fontSize: "16px", fontWeight: 600, margin: 0, color: themeStyles.textPrimary }}>
-              Timeframe
-            </h3>
-          </div>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-            {["1D", "1W", "1M", "6M", "1Y", "5Y"].map((tf) => (
-              <button
-                key={tf}
-                onClick={() => handleFilterChange(tf)}
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  fontWeight: 500,
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  ...(tf === timeframe
-                    ? {
-                        background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                        color: "#fff",
-                        border: "none",
-                      }
-                    : {
-                        backgroundColor: themeStyles.buttonBackground,
-                        color: themeStyles.buttonText,
-                        border: `1px solid ${themeStyles.buttonBorder}`,
-                      }),
-                }}
-              >
-                {tf}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Indicators */}
-        <div
-          style={{
+            display: "flex",
+            gap: "20px",
             marginBottom: "30px",
-            padding: "16px",
-            backgroundColor: themeStyles.cardBackground,
-            borderRadius: "12px",
-            border: `1px solid ${themeStyles.cardBorder}`,
+            flexWrap: "wrap",
+            width: "100%",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <Activity size={18} color="#06b6d4" />
-            <h3 style={{ fontSize: "16px", fontWeight: 600, margin: 0 }}>Technical Indicators</h3>
+          {/* Timeframe Container */}
+          <div
+            style={{
+              flex: 1,
+              minWidth: "280px",
+              padding: "16px",
+              borderRadius: "12px",
+              backgroundColor: themeStyles.cardBackground,
+              border: `1px solid ${themeStyles.cardBorder}`,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+              <Zap size={18} color="#f59e0b" />
+              <h3 style={{ fontSize: "16px", fontWeight: 600, margin: 0, color: themeStyles.textPrimary }}>
+                Timeframe
+              </h3>
+            </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {Object.entries(timeframeLabels).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => handleFilterChange(key)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    fontWeight: 500,
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    ...(key === timeframe
+                      ? {
+                          background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                          color: "#fff",
+                          border: "none",
+                        }
+                      : {
+                          backgroundColor: themeStyles.buttonBackground,
+                          color: themeStyles.buttonText,
+                          border: `1px solid ${themeStyles.buttonBorder}`,
+                        }),
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-            {["EMA12", "EMA26", "BB", "RSI", "VOLUME"].map((trend) => (
-              <button
-                key={trend}
-                onClick={() => handleToggle(trend)}
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: "8px",
-                  fontWeight: 500,
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  ...(selectedTrends.includes(trend)
-                    ? {
-                        background: "linear-gradient(135deg, #0ea5e9, #06b6d4)",
-                        color: "#fff",
-                        border: "none",
-                      }
-                    : {
-                        backgroundColor: themeStyles.buttonBackground,
-                        color: themeStyles.buttonText,
-                        border: `1px solid ${themeStyles.buttonBorder}`,
-                      }),
-                }}
-              >
-                {getTrendIcon(trend)}
-                {trend}
-              </button>
-            ))}
+          {/* Technical Indicators Container */}
+          <div
+            style={{
+              flex: 1,
+              minWidth: "280px",
+              padding: "16px",
+              borderRadius: "12px",
+              backgroundColor: themeStyles.cardBackground,
+              border: `1px solid ${themeStyles.cardBorder}`,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+              <Activity size={18} color="#06b6d4" />
+              <h3 style={{ fontSize: "16px", fontWeight: 600, margin: 0, color: themeStyles.textPrimary }}>
+                Technical Indicators
+              </h3>
+            </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {["EMA12", "EMA26", "BB", "RSI", "VOLUME"].map((trend) => (
+                <button
+                  key={trend}
+                  onClick={() => handleToggle(trend)}
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    fontWeight: 500,
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    ...(selectedTrends.includes(trend)
+                      ? {
+                          background: "linear-gradient(135deg, #0ea5e9, #06b6d4)",
+                          color: "#fff",
+                          border: "none",
+                        }
+                      : {
+                          backgroundColor: themeStyles.buttonBackground,
+                          color: themeStyles.buttonText,
+                          border: `1px solid ${themeStyles.buttonBorder}`,
+                        }),
+                  }}
+                >
+                  {getTrendIcon(trend)}
+                  {trend}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Bullish / Bearish */}
+        {/* Market Trend */}
         {data.length > 0 && (
-          <div style={{ marginBottom: "20px", display: "flex", gap: "12px"}}>
-            <span style={{ fontSize: "14px", color: themeStyles.textSecondary }}>Market Trend: </span>
+          <div style={{ marginBottom: "20px", display: "flex", gap: "12px", alignItems: "center", paddingLeft: "10px" }}>
+            <span style={{ fontSize: "14px", fontWeight: 600, color: themeStyles.textSecondary }}>
+              Market Trend:
+            </span>
             <span
               style={{
                 padding: "6px 16px",
@@ -327,7 +333,7 @@ const AnalysisPage: React.FC = () => {
           </div>
         )}
 
-        {/* Layout */}
+        {/* Chart + TechnicalStatus */}
         <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
           {/* Chart */}
           <div style={{ flex: "1 1 700px", minHeight: "600px" }}>
@@ -352,7 +358,6 @@ const AnalysisPage: React.FC = () => {
                   <BarChart3 size={20} color="#3b82f6" /> {symbolParam} Price Chart
                 </h3>
               </div>
-
               <div style={{ minHeight: "450px" }}>
                 {loading ? (
                   <div
@@ -382,21 +387,6 @@ const AnalysisPage: React.FC = () => {
                 ) : (
                   <StockChart data={data} selectedTrends={selectedTrends} />
                 )}
-              </div>
-
-              <div
-                style={{
-                  marginTop: "10px",
-                  paddingTop: "10px",
-                  borderTop: `1px solid ${themeStyles.cardBorder}`,
-                  fontSize: "12px",
-                  color: themeStyles.textSecondary,
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Timeframe: {timeframeLabels[timeframe]}</span>
-                  <span>{data.length} data points</span>
-                </div>
               </div>
             </div>
           </div>
