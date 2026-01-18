@@ -16,13 +16,14 @@ import {
 import { motion, Variants } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { WarningAmber } from "@mui/icons-material";
+
 import {
   Groups,
-  Code,
-  School,
   ShowChart,
   Lightbulb,
   Description,
+  School,
 } from "@mui/icons-material";
 
 const fadeUp: Variants = {
@@ -39,11 +40,7 @@ export default function AboutUsPage() {
   const router = useRouter();
   const isDark = theme.palette.mode === "dark";
 
-  const cardBg = isDark ? "#1a1a2e" : "#fff";
-  const cardBorder = isDark
-    ? "1px solid rgba(255,255,255,0.1)"
-    : "1px solid rgba(103,58,183,0.1)";
-  const textColor = isDark ? "#fff" : "#000"; // dynamic for dark mode
+  const textColor = isDark ? "#fff" : "#000";
   const textSecondary = isDark ? "#aaa" : "#555";
 
   return (
@@ -54,42 +51,31 @@ export default function AboutUsPage() {
           py: { xs: 8, md: 12 },
           background: isDark
             ? "linear-gradient(135deg, #151528, #1e1e2f)"
-            : "linear-gradient(135deg, #d4d9e7, #b4c4f7)",
+            : "linear-gradient(135deg, #a8bdf6, #da9df873)",
           textAlign: "center",
         }}
       >
         <Container maxWidth="lg">
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-            <Chip
-              icon={<School sx={{ color: "#6a1b9a" }} />}
-              label="FINAL YEAR COMPUTER SCIENCE PROJECT"
-              sx={{ mb: 3, fontWeight: 600 }}
-            />
-           <Typography
-  variant="h2"
-  fontWeight={900}
-  mb={3}
-  sx={{
-    color: textColor,
-    fontSize: { xs: "2.2rem", md: "2.8rem" }, // reduced size
-  }}
->
-  FinSight: Stock Trend Prediction System
-</Typography>
+            <Typography
+              variant="h2"
+              fontWeight={900}
+              mb={3}
+              sx={{ color: textColor, fontSize: { xs: "2.2rem", md: "2.8rem" } }}
+            >
+              FinSight: Stock Trend Prediction System
+            </Typography>
 
             <Typography
-  variant="h6"
-  color={textSecondary}
-  maxWidth={800}
-  mx="auto"
-  sx={{
-    fontSize: { xs: "1rem", md: "1.1rem" }, // reduced subtitle size
-    lineHeight: 1.6,
-  }}
->
-  AI-powered platform for analyzing Nepali stock market trends using machine learning and historical NEPSE data. Designed to provide both educational insights and practical data analysis experience for students.
-</Typography>
-
+              variant="h6"
+              color={textSecondary}
+              maxWidth={800}
+              mx="auto"
+              sx={{ fontSize: { xs: "1rem", md: "1.1rem" }, lineHeight: 1.6 }}
+            >
+              AI-powered platform for analyzing Nepali stock market trends using machine learning and historical NEPSE data. 
+              Designed to provide both educational insights and practical data analysis experience for students.
+            </Typography>
           </motion.div>
         </Container>
       </Box>
@@ -97,177 +83,145 @@ export default function AboutUsPage() {
       <Container maxWidth="lg" sx={{ mt: 8 }}>
         {/* PROJECT OVERVIEW */}
         <Card
-  sx={{
-    display: "flex",
-    flexDirection: { xs: "column", md: "row" },
-    mb: 8,
-    borderRadius: 4,
-    overflow: "hidden",
-    boxShadow: isDark
-      ? "0 12px 36px rgba(106,27,154,0.3)"
-      : "0 6px 24px rgba(103,58,183,0.15)",
-    transition: "0.4s",
-    "&:hover": { transform: "scale(1.02)", boxShadow: isDark ? "0 18px 50px rgba(106,27,154,0.45)" : "0 12px 36px rgba(103,58,183,0.25)" },
-  }}
->
-  <Box sx={{ flex: 1, position: "relative", minHeight: 400 }}>
-    <Image src="/assets/stock-dashboard.png" alt="Dashboard" fill style={{ objectFit: "cover", borderRadius: 4 }} />
-  </Box>
-  <Box sx={{ flex: 1, p: { xs: 4, md: 6 } }}>
-    <Typography variant="h4" fontWeight={700} mb={3} sx={{ color: textColor }}>
-      Project Overview
-    </Typography>
-    <Stack spacing={2}>
-      <Typography color={textSecondary}>• FinSight is a stock trend prediction system developed as a final year project.</Typography>
-      <Typography color={textSecondary}>• Integrates NEPSE historical data with machine learning to predict trends and provide insights.</Typography>
-      <Typography color={textSecondary}>• Visualizes technical indicators such as EMA, RSI, and Bollinger Bands.</Typography>
-      <Typography color={textSecondary}>• Allows students and beginners to practice analysis in a risk-free environment.</Typography>
-      <Typography color={textSecondary}>• Interactive dashboards and charts for easy learning and decision-making.</Typography>
-      <Typography color={textSecondary}>• Supports data-driven learning for financial literacy and ML application.</Typography>
-    </Stack>
-  </Box>
-</Card>
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            mb: 8,
+            borderRadius: 4,
+            overflow: "hidden",
+          }}
+        >
+          <Box sx={{ flex: 1, position: "relative", minHeight: 400 }}>
+            <Image src="/assets/stock-dashboard.png" alt="Dashboard" fill style={{ objectFit: "cover" }} />
+          </Box>
+          <Box sx={{ flex: 1, p: { xs: 4, md: 6 } }}>
+            <Typography variant="h4" fontWeight={700} mb={3} sx={{ color: textColor }}>
+              Project Overview
+            </Typography>
+            <Stack spacing={2}>
+              <Typography color={textSecondary}>• AI-driven stock trend prediction system</Typography>
+              <Typography color={textSecondary}>• Uses historical NEPSE data for analysis</Typography>
+              <Typography color={textSecondary}>• Visualizes EMA, RSI, and Bollinger Bands</Typography>
+              <Typography color={textSecondary}>• Designed for learning and exploration</Typography>
+              <Typography color={textSecondary}>• Encourages data-driven understanding</Typography>
+            </Stack>
+          </Box>
+        </Card>
+
+{/* WHO THIS PLATFORM IS FOR & WHY FINSIGHT */}
+<Grid container spacing={4} mb={8}>
+  {/* WHO THIS PLATFORM IS FOR */}
+  <Grid item xs={12} md={6}>
+    <Box
+      sx={{
+        p: "2px",
+        borderRadius: 5,
+        background:
+          "linear-gradient(135deg, #7b2ff7, #9f44d3, #ff6ec4)",
+        height: "100%",
+      }}
+    >
+      <Card
+        sx={{
+          p: 4,
+          height: "100%",
+          borderRadius: 4,
+          background: isDark
+            ? "rgba(20,20,40,0.85)"
+            : "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 16px 40px rgba(123,47,247,0.35)",
+          transition: "0.45s ease",
+          "&:hover": {
+            transform: "translateY(-8px)",
+            boxShadow: "0 24px 60px rgba(255,110,196,0.45)",
+          },
+        }}
+      >
+        <Box display="flex" alignItems="center" mb={3}>
+          <Groups sx={{ fontSize: 42, mr: 2, color: "#ff6ec4" }} />
+          <Typography variant="h4" fontWeight={800} sx={{ color: textColor }}>
+            Who This Platform Is For
+          </Typography>
+        </Box>
+
+        <Stack spacing={2.2}>
+          <Typography color={textSecondary}>
+            🎓 Students learning stock markets and financial analytics
+          </Typography>
+          <Typography color={textSecondary}>
+            📊 Beginners exploring technical indicators visually
+          </Typography>
+          <Typography color={textSecondary}>
+            🤖 Learners studying machine learning in finance
+          </Typography>
+          <Typography color={textSecondary}>
+            🇳🇵 Individuals analyzing NEPSE market patterns
+          </Typography>
+        </Stack>
+      </Card>
+    </Box>
+  </Grid>
+
+  {/* WHY FINSIGHT */}
+  <Grid item xs={12} md={6}>
+    <Box
+      sx={{
+        p: "2px",
+        borderRadius: 5,
+        background:
+          "linear-gradient(135deg, #00c6ff, #0072ff, #6a11cb)",
+        height: "100%",
+      }}
+    >
+      <Card
+        sx={{
+          p: 4,
+          height: "100%",
+          borderRadius: 4,
+          background: isDark
+            ? "rgba(18,25,40,0.85)"
+            : "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 16px 40px rgba(0,114,255,0.35)",
+          transition: "0.45s ease",
+          "&:hover": {
+            transform: "translateY(-8px)",
+            boxShadow: "0 24px 60px rgba(0,198,255,0.45)",
+          },
+        }}
+      >
+        <Box display="flex" alignItems="center" mb={3}>
+          <Lightbulb sx={{ fontSize: 42, mr: 2, color: "#00c6ff" }} />
+          <Typography variant="h4" fontWeight={800} sx={{ color: textColor }}>
+            Why FinSight
+          </Typography>
+        </Box>
+
+        <Stack spacing={2.2}>
+          <Typography color={textSecondary}>
+            📈 Built using real historical NEPSE market data
+          </Typography>
+          <Typography color={textSecondary}>
+            🧠 Integrates technical indicators with ML-based analysis
+          </Typography>
+          <Typography color={textSecondary}>
+            🎯 Focused on learning and analysis, not trading execution
+          </Typography>
+          <Typography color={textSecondary}>
+            🔍 Emphasizes transparency through charts and indicators
+          </Typography>
+          <Typography color={textSecondary}>
+            📚 Designed to support academic understanding and research
+          </Typography>
+        </Stack>
+      </Card>
+    </Box>
+  </Grid>
+</Grid>
 
 
-        {/* DEVELOPMENT TEAM & LEARNING OUTCOMES */}
-        <Grid container spacing={4} mb={8} justifyContent="center" alignItems="stretch">
-          {/* Development Team */}
-          <Grid item xs={12} md={5} sx={{ display: "flex" }}>
-            <Card
-              sx={{
-                p: 4,
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                borderRadius: 3,
-                boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-                transition: "0.3s",
-                "&:hover": { boxShadow: "0 12px 28px rgba(0,0,0,0.2)", transform: "scale(1.03)" },
-              }}
-            >
-              <Box display="flex" alignItems="center" mb={3}>
-                <Groups sx={{ fontSize: 36, mr: 2, color: "#6a1b9a" }} />
-                <Typography variant="h4" fontWeight={700} sx={{ color: textColor }}>
-                  Development Team
-                </Typography>
-              </Box>
 
-              <Stack spacing={3}>
-                {[
-                  { name: "Prashuna Shrestha", role: "Full Stack Developer ", initials: "PS", color: "#6a1b9a" },
-                  { name: "Pratima Singh", role: "Full Stack Developer ", initials: "PS", color: "#9c27b0" },
-                ].map((m) => (
-                  <Box key={m.name} display="flex" alignItems="center">
-                    <Avatar sx={{ width: 60, height: 60, mr: 3, bgcolor: m.color, fontWeight: 700 }}>{m.initials}</Avatar>
-                    <Box>
-                      <Typography fontWeight={600} sx={{ color: textColor }}>{m.name}</Typography>
-                      <Typography color={textSecondary}>{m.role}</Typography>
-                    </Box>
-                  </Box>
-                ))}
-              </Stack>
-            </Card>
-          </Grid>
-
-          {/* Learning Outcomes */}
-          <Grid item xs={12} md={5} sx={{ display: "flex" }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              style={{ width: "100%" }}
-            >
-              <Card
-                sx={{
-                  p: 4,
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  borderRadius: 3,
-                  bgcolor: "#6a1b9a10",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-                  transition: "0.3s",
-                  "&:hover": {
-                    boxShadow: "0 12px 28px rgba(0,0,0,0.2)",
-                    transform: "scale(1.03)",
-                    bgcolor: "#6a1b9a15",
-                  },
-                }}
-              >
-                <Box display="flex" alignItems="center" mb={3}>
-                  <Lightbulb sx={{ fontSize: 36, mr: 2, color: "#6a1b9a" }} />
-                  <Typography variant="h4" fontWeight={700} sx={{ color: textColor }}>
-                    Learning Outcomes
-                  </Typography>
-                </Box>
-
-                <Stack spacing={2}>
-                  <Typography color={textSecondary}>• Understand Nepali stock market trends</Typography>
-                  <Typography color={textSecondary}>• Apply machine learning for trend prediction</Typography>
-                  <Typography color={textSecondary}>• Learn data cleaning and analysis</Typography>
-                  <Typography color={textSecondary}>• Visualize results with interactive dashboards</Typography>
-                  <Typography color={textSecondary}>• Gain hands-on experience with Python, FastAPI, and Next.js</Typography>
-                </Stack>
-              </Card>
-            </motion.div>
-          </Grid>
-        </Grid>
-
-        {/* TECHNOLOGY STACK */}
-        <Grid container spacing={4} mb={8} justifyContent="center" alignItems="stretch">
-          <Grid item xs={12} md={10} sx={{ display: "flex" }}>
-            <Card
-              sx={{
-                p: 4,
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                borderRadius: 3,
-                boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-                transition: "0.3s",
-                "&:hover": { boxShadow: "0 12px 28px rgba(0,0,0,0.2)", transform: "scale(1.03)" },
-              }}
-            >
-              <Box display="flex" alignItems="center" mb={3}>
-                <Code sx={{ fontSize: 36, mr: 2, color: "#6a1b9a" }} />
-                <Typography variant="h4" fontWeight={700} sx={{ color: textColor }}>
-                  Technology Stack
-                </Typography>
-              </Box>
-
-              <Grid container spacing={1.5} mb={3}>
-                {[
-                  { name: "Next.js", color: "#6a1b9a" },
-                  { name: "Python", color: "#2196f3" },
-                  { name: "FastAPI", color: "#4caf50" },
-                  { name: "PostgreSQL", color: "#009688" },
-                  { name: "Material-UI", color: "#9c27b0" },
-                  { name: "Pandas", color: "#ff5722" },
-                ].map((t) => (
-                  <Grid item key={t.name}>
-                    <Chip
-                      label={t.name}
-                      sx={{
-                        bgcolor: `${t.color}33`,
-                        color: t.color,
-                        fontWeight: 500,
-                        px: 2,
-                        py: 1.5,
-                        borderRadius: 2,
-                        "&:hover": { bgcolor: `${t.color}55` },
-                      }}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-
-              <Typography color={textSecondary}>
-                Modern frameworks and data science tools for performance and scalability.
-              </Typography>
-            </Card>
-          </Grid>
-        </Grid>
 
         {/* MISSION */}
        <Card
@@ -440,62 +394,104 @@ export default function AboutUsPage() {
   ))}
 </Grid>
 
-<motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={5}>
-  <Card
+{/* CTA */}
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+          <Card
+            sx={{
+              p: { xs: 4, md: 6 },
+              borderRadius: 4,
+              textAlign: "center",
+              mb: 8,
+              background: "linear-gradient(135deg, #6a1b9a, #2196f3)",
+              color: "#fff",
+            }}
+          >
+            <Typography variant="h4" fontWeight={700} mb={2}>
+              Learn & Explore the Stock Market
+            </Typography>
+            <Typography mb={4} maxWidth={700} mx="auto">
+              Understand stock market concepts, indicators, and how FinSight works
+              through our learning section.
+            </Typography>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center">
+              <Button
+                variant="contained"
+                onClick={() => router.push("/analysis")}
+                sx={{ background: "#fff", color: "#6a1b9a", fontWeight: 600 }}
+              >
+                Try Prediction System
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => router.push("/learn")}
+                sx={{ borderColor: "#fff", color: "#fff", fontWeight: 600 }}
+              >
+                Explore Stock Learning
+              </Button>
+            </Stack>
+          </Card>
+          {/* DISCLAIMER */}
+<Box
+  mt={10}
+  mb={4}
+  px={2}
+  display="flex"
+  justifyContent="center"
+>
+  <Box
     sx={{
-      p: { xs: 4, md: 6 },
+      maxWidth: 1000,
+      width: "100%",
+      p: "2px",
       borderRadius: 4,
-      textAlign: "center",
-      mb: 8,
-      background: "linear-gradient(135deg, #6a1b9a, #2196f3)",
-      color: "#fff",
-      boxShadow: "0 12px 40px rgba(0,0,0,0.25)",
-      transition: "0.4s",
-      "&:hover": { transform: "scale(1.03)", boxShadow: "0 18px 50px rgba(0,0,0,0.35)" },
+      background:
+        "linear-gradient(135deg, #ff9800, #f44336, #9c27b0)",
     }}
   >
-    <Typography variant="h4" fontWeight={700} mb={2}>
-      Explore Our Project
-    </Typography>
-    <Typography mb={4} maxWidth={700} mx="auto" sx={{ lineHeight: 1.6 }}>
-      Experience FinSight and explore the source code to understand how machine learning is applied to Nepali stock data.
-    </Typography>
-    <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center">
-      <Button
-        variant="contained"
-        onClick={() => router.push("/analysis")}
-        sx={{
-          background: "linear-gradient(135deg,#fff 0%,#fff 100%)",
-          color: "#6a1b9a",
-          px: 4,
-          py: 1.5,
-          fontWeight: 600,
-          borderRadius: 3,
-          "&:hover": { background: "#fff", color: "#4a148c", boxShadow: "0 6px 20px rgba(0,0,0,0.2)" },
-        }}
-      >
-        Try Prediction System
-      </Button>
-      <Button
-        variant="outlined"
-        onClick={() => window.open("https://github.com/prashuna-shrestha/MajorProject", "_blank")}
-        sx={{
-          borderColor: "#fff",
-          color: "#fff",
-          px: 4,
-          py: 1.5,
-          fontWeight: 600,
-          borderRadius: 3,
-          "&:hover": { background: "#ffffff22", borderColor: "#fff" },
-        }}
-      >
-        View Source Code
-      </Button>
-    </Stack>
-  </Card>
-</motion.div>
+    <Card
+      sx={{
+        p: 3,
+        borderRadius: 3,
+        background: isDark
+          ? "rgba(20,20,30,0.9)"
+          : "rgba(255,255,255,0.95)",
+        backdropFilter: "blur(8px)",
+        boxShadow: "0 10px 30px rgba(244,67,54,0.25)",
+      }}
+    >
+      <Box display="flex" alignItems="center" mb={1.5}>
+        <WarningAmber sx={{ color: "#ff9800", mr: 1.5, fontSize: 28 }} />
+        <Typography variant="h6" fontWeight={700} sx={{ color: textColor }}>
+          Disclaimer
+        </Typography>
+      </Box>
 
+      <Typography
+        variant="body2"
+        sx={{ color: textSecondary, lineHeight: 1.8 }}
+      >
+        This platform is developed strictly for educational and analytical
+        purposes. The information, visualizations, and predictions provided
+        are not intended to be used as financial advice or as a basis for
+        making investment decisions. This system does not support, recommend,
+        or facilitate the buying or selling of securities. 
+      </Typography>
+    </Card>
+  </Box>
+</Box>
+
+
+        </motion.div>
       </Container>
     </Box>
   );
 }
+
+
+
+
+
+
+
+
+

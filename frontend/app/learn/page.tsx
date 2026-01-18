@@ -1,5 +1,6 @@
 "use client";
-import React from "react"; 
+import React from "react";
+import { SvgIconProps } from "@mui/material/SvgIcon";
 import {
   Box,
   Container,
@@ -10,6 +11,7 @@ import {
   useTheme,
   Divider,
 } from "@mui/material";
+import { motion, Variants } from "framer-motion";
 import {
   School,
   TrendingUp,
@@ -20,8 +22,6 @@ import {
   BarChart,
   WarningAmber,
 } from "@mui/icons-material";
-import { motion, Variants } from "framer-motion";
-
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -31,7 +31,6 @@ const fadeUp: Variants = {
     transition: { delay: custom * 0.1, duration: 0.5, ease: "easeOut" },
   }),
 };
-
 
 const SectionCard = ({
   icon,
@@ -49,14 +48,14 @@ const SectionCard = ({
 
   return (
     <motion.div
-  initial="hidden"
-  whileInView="visible"
-  viewport={{ once: true }}
-  variants={fadeUp}
-  custom={index} // <-- pass the index as `custom`
-  whileHover={{ scale: 1.03 }}
-  style={{ height: "100%", width: "100%" }}
->
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={index}
+      whileHover={{ scale: 1.03 }}
+      style={{ height: "100%", width: "100%" }}
+    >
       <Card
         sx={{
           p: 5,
@@ -97,15 +96,13 @@ const SectionCard = ({
               },
             }}
           >
-              {React.isValidElement(icon) ? (
-    React.cloneElement(icon as React.ReactElement<any>, {
-      fontSize: "large",
-      htmlColor: "#fff",
-    })
-  ) : (
-    icon
-  )}
-</Box>
+            {React.isValidElement(icon)
+              ? React.cloneElement(icon as React.ReactElement<any>, {
+                  fontSize: "large",
+                  htmlColor: "#fff",
+                })
+              : icon}
+          </Box>
 
           <Typography
             variant="h6"
@@ -119,7 +116,8 @@ const SectionCard = ({
           <Typography
             color={isDark ? "grey.400" : "text.secondary"}
             lineHeight={1.9}
-            textAlign="center"
+            textAlign="justify"
+            sx={{ whiteSpace: "pre-line" }}
           >
             {content}
           </Typography>
@@ -141,7 +139,7 @@ export default function LearnPage() {
           py: 12,
           background: isDark
             ? "linear-gradient(135deg, #1e1e2f, #151528)"
-            : "linear-gradient(135deg, #f0f4ff, #e0e7ff)",
+            : "linear-gradient(135deg, #afdbf9, #d4bcfa)",
           borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
@@ -180,14 +178,14 @@ export default function LearnPage() {
 
       {/* CONTENT SECTION */}
       <Box
-        sx={{
-          py: 10,
-          width: "100%",
-          background: isDark
-            ? "linear-gradient(135deg, #151528, #1e1e2f)"
-            : "linear-gradient(135deg, #fdfdfd, #f3f4ff)",
-        }}
-      >
+  sx={{
+    py: 10,
+    width: "100%",
+    background: isDark
+      ? "#151528" // dark mode background
+      : "#f1f9f3", // light grey for light mode
+  }}
+>
         <Container maxWidth="lg">
           <Grid container spacing={5}>
             {[
@@ -211,9 +209,14 @@ export default function LearnPage() {
               },
               {
                 icon: <ShowChart />,
-                title: "What Are Technical Indicators?",
+                title: "Technical Indicators Explained",
                 content:
-                  "Technical indicators analyze price data mathematically. Examples include EMA (trend direction), RSI (overbought/oversold), and Bollinger Bands (price volatility). These indicators help traders identify entry and exit points and understand market conditions better.",
+                  "Technical indicators are calculations based on price, volume, and historical data to help traders make informed decisions. Key indicators include:\n\n" +
+                  "•EMA (Exponential Moving Average)– shows the trend direction by giving more weight to recent prices, helping identify momentum.\n" +
+                  "•RSI (Relative Strength Index) – measures overbought or oversold conditions, indicating potential trend reversals.\n" +
+                  "•Bollinger Bands– display price volatility and potential support/resistance levels.\n" +
+                  "•Volume – tracks the number of shares traded, confirming the strength of price movements." ,
+                  
               },
               {
                 icon: <BarChart />,
@@ -250,6 +253,59 @@ export default function LearnPage() {
               </Grid>
             ))}
           </Grid>
+
+          {/* NEW SECTION: COMMON STOCK PATTERNS */}
+          <Box sx={{ py: 10, width: "100%" }}>
+            <Typography
+              variant="h4"
+              fontWeight={800}
+              mb={4}
+              color={isDark ? "grey.100" : "text.primary"}
+              textAlign="center"
+            >
+              Common Stock Patterns & Signals
+            </Typography>
+
+            <Grid container spacing={5}>
+              {[
+                {
+                  title: "Head & Shoulders",
+                  icon: <ShowChart />,
+                  content:
+                    "The Head and Shoulders pattern in the stock market is a key technical analysis formation signaling a potential trend reversal, typically from bullish to bearish, featuring three peaks: a left shoulder, a higher head, and a lower right shoulder, connected by a neckline with a break below it confirming a downward price move. An Inverse Head and Shoulders signals a bullish reversal from a downtrend. It helps traders identify trend changes and set price targets and stop-loss levels. ",
+                },
+                {
+                  title: "Double Top / Double Bottom",
+                  icon: <TrendingUp />,
+                  content:
+                    "Double tops (M shape) and double bottoms (W shape) are key technical analysis chart patterns signaling potential trend reversals: a double top suggests an uptrend ending and a downtrend starting, while a double bottom indicates a downtrend ending and an uptrend beginning; both are confirmed when the price breaks below the neckline (the trough between the two peaks/lows) for a double top, or above it for a double bottom, showing buyer/seller exhaustion.",
+                },
+                {
+                  title: "Support & Resistance",
+                  icon: <BarChart />,
+                  content:
+                    "Support and resistance are key technical analysis levels where buying (support) or selling (resistance) pressure often stops or reverses a stock's price, acting as a price floor (support) and ceiling (resistance) based on supply/demand psychology, helping traders find entry/exit points, with strong levels being hit multiple times before breaking, signaling new trends. ",
+                },
+                {
+                  title: "Breakouts",
+                  icon: <Speed />,
+                  content:
+                    "Mastering Breakout Trading: Key Strategies for SuccessA stock market breakout is when a stock's price moves decisively past a key support or resistance level, breaking its established trading range, often signaling the start of a strong new trend, confirmed by a surge in trading volume. Traders look for upside breakouts (above resistance) or downside breakouts (below support) to enter positions, aiming to capture momentum, but must watch for fakeouts where the price quickly reverses.",
+                },
+              ].map((item, index) => (
+                <Grid key={item.title} item xs={12} md={6}>
+                  <SectionCard
+                    icon={item.icon}
+                    title={item.title}
+                    content={item.content}
+                    index={index}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+
+          
 
           <Divider sx={{ my: 8, borderColor: isDark ? "#2e2e3f" : "#d1d5db" }} />
 
