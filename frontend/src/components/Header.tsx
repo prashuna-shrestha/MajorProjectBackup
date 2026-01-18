@@ -70,6 +70,7 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
   const navLinks = [
     { label: "Home", href: "/" },
     { label: "News", href: "/news" },
+    { label: "Learn", href: "/learn"},
     { label: "About Us", href: "/aboutus" },
     { label: "Analysis", href: "/analysis" },
   ];
