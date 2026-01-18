@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useEffect, useState } from "react";
 import { ChartCanvas, Chart } from "react-financial-charts";
@@ -15,6 +16,7 @@ import {
 } from "@react-financial-charts/coordinates";
 import { discontinuousTimeScaleProvider } from "@react-financial-charts/scales";
 import { timeFormat } from "d3-time-format";
+import { useTheme } from "@mui/material";
 
 interface StockChartProps {
   data: any[];
@@ -22,6 +24,8 @@ interface StockChartProps {
 }
 
 const StockChart: React.FC<StockChartProps> = ({ data, selectedTrends }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const [width, setWidth] = useState<number>(900);
 
   useEffect(() => {
@@ -55,16 +59,11 @@ const StockChart: React.FC<StockChartProps> = ({ data, selectedTrends }) => {
   if (formattedData.length === 0) return <div>No valid dates available</div>;
 
   const xScaleProvider = discontinuousTimeScaleProvider.inputDateAccessor(
-    (d: any) => d.date,
+    (d: any) => d.date
   );
-  const {
-    data: chartData,
-    xScale,
-    xAccessor,
-    displayXAccessor,
-  } = xScaleProvider(formattedData);
+  const { data: chartData, xScale, xAccessor, displayXAccessor } =
+    xScaleProvider(formattedData);
 
-  // Decide which extra panels to show
   const showVolume =
     selectedTrends.includes("VOLUME") &&
     chartData.some((d) => d.volume !== null);
@@ -74,7 +73,21 @@ const StockChart: React.FC<StockChartProps> = ({ data, selectedTrends }) => {
   const mainHeight = showRSI ? 380 : 450;
   const volumeHeight = showVolume ? 80 : 0;
   const rsiHeight = showRSI ? 120 : 0;
-  const totalHeight = mainHeight + volumeHeight + rsiHeight + 40;
+  const totalHeight = mainHeight + volumeHeight + rsiHeight + 50;
+
+  // Theme colors
+  const colors = {
+    up: isDark ? "#22c55e" : "#16a34a",
+    down: isDark ? "#ef4444" : "#dc2626",
+    EMA12: "#22c55e",
+    EMA26: "#3b82f6",
+    BB: "#f97316",
+    BBMA: "#a78bfa",
+    volume: isDark ? "#6b7280" : "#c7d2fe",
+    RSI: isDark ? "#fbbf24" : "#facc15",
+    bg: isDark ? "#1a1a2e" : "#fff",
+    grid: isDark ? "#2e2e3f" : "#e5e7eb",
+  };
 
   return (
     <ChartCanvas
@@ -87,52 +100,66 @@ const StockChart: React.FC<StockChartProps> = ({ data, selectedTrends }) => {
       xScale={xScale}
       xAccessor={xAccessor}
       displayXAccessor={displayXAccessor}
+      style={{ background: colors.bg }}
     >
-      {/* Main price chart */}
+      {/* Main chart */}
       <Chart
         id={1}
         yExtents={(d: any) => [d.high, d.low, d.BB_UPPER, d.BB_LOWER]}
       >
-        <XAxis />
-        <YAxis />
+        <XAxis showGridLines stroke={colors.grid} />
+        <YAxis showGridLines stroke={colors.grid} />
         <MouseCoordinateX displayFormat={timeFormat("%Y-%m-%d")} />
-        <MouseCoordinateY />
-        <CandlestickSeries />
+        <MouseCoordinateY displayFormat={(y) => y.toFixed(2)} />
+
+        <CandlestickSeries
+          fill={(d) => (d.close > d.open ? colors.up : colors.down)}
+          wickStroke={(d) => (d.close > d.open ? colors.up : colors.down)}
+          candleStrokeWidth={1.5}
+        />
 
         {/* Overlays */}
         {selectedTrends.includes("EMA12") && (
-          <LineSeries yAccessor={(d: any) => d.EMA12} stroke="#22c55e" />
+          <LineSeries yAccessor={(d: any) => d.EMA12} stroke={colors.EMA12} />
         )}
         {selectedTrends.includes("EMA26") && (
-          <LineSeries yAccessor={(d: any) => d.EMA26} stroke="#3b82f6" />
+          <LineSeries yAccessor={(d: any) => d.EMA26} stroke={colors.EMA26} />
         )}
         {selectedTrends.includes("BB") && (
           <>
-            <LineSeries yAccessor={(d: any) => d.BB_UPPER} stroke="#f97316" />
-            <LineSeries yAccessor={(d: any) => d.BB_LOWER} stroke="#f97316" />
-            <LineSeries yAccessor={(d: any) => d.BB_MA20} stroke="#a78bfa" />
+            <LineSeries yAccessor={(d: any) => d.BB_UPPER} stroke={colors.BB} />
+            <LineSeries yAccessor={(d: any) => d.BB_LOWER} stroke={colors.BB} />
+            <LineSeries yAccessor={(d: any) => d.BB_MA20} stroke={colors.BBMA} />
           </>
         )}
       </Chart>
 
-      {/* Volume chart */}
+      {/* Volume */}
       {showVolume && (
         <Chart id={2} height={volumeHeight} yExtents={(d: any) => d.volume}>
-          <YAxis />
-          <BarSeries yAccessor={(d: any) => d.volume} />
+          <YAxis showGridLines={false} />
+          <BarSeries
+            yAccessor={(d: any) => d.volume}
+            fill={colors.volume}
+            opacity={0.6}
+          />
         </Chart>
       )}
 
-      {/* RSI chart */}
+      {/* RSI */}
       {showRSI && (
         <Chart id={3} height={rsiHeight} yExtents={[0, 100]}>
-          <XAxis />
-          <YAxis />
-          <AreaSeries yAccessor={(d: any) => d.RSI14} />
+          <XAxis stroke={colors.grid} />
+          <YAxis stroke={colors.grid} />
+          <AreaSeries
+            yAccessor={(d: any) => d.RSI14}
+            fill={colors.RSI + "55"}
+            stroke={colors.RSI}
+          />
         </Chart>
       )}
 
-      <CrossHairCursor />
+      <CrossHairCursor stroke={isDark ? "#f97316" : "#3b82f6"} />
     </ChartCanvas>
   );
 };

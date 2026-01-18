@@ -92,7 +92,7 @@ export default function AboutUsPage() {
           }}
         >
           <Box sx={{ flex: 1, position: "relative", minHeight: 400 }}>
-            <Image src="/assets/stock-dashboard.png" alt="Dashboard" fill style={{ objectFit: "cover" }} />
+            <Image src="/assets/stock-dashboard.jpeg" alt="Dashboard" fill style={{ objectFit: "cover" }} />
           </Box>
           <Box sx={{ flex: 1, p: { xs: 4, md: 6 } }}>
             <Typography variant="h4" fontWeight={700} mb={3} sx={{ color: textColor }}>
