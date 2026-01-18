@@ -16,6 +16,7 @@
     "@react-financial-charts/axes": "^2.0.0",
     "@react-financial-charts/coordinates": "^2.0.0",
     "@reduxjs/toolkit": "^2.10.0",
+    "axios": "^1.13.2",
     "d3": "^7.9.0",
     "d3-array": "^3.2.4",
     "d3-format": "^3.1.0",
