@@ -9,6 +9,10 @@ const muiCache = createCache({
   prepend: true,
 });
 
-export default function MuiRegistry({ children }: { children: React.ReactNode }) {
+export default function MuiRegistry({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return <CacheProvider value={muiCache}>{children}</CacheProvider>;
 }

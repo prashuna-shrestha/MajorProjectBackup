@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo } from "react";
-import { Provider as ReduxProvider, useDispatch, useSelector } from "react-redux";
+import {
+  Provider as ReduxProvider,
+  useDispatch,
+  useSelector,
+} from "react-redux";
 import { ThemeProvider } from "@mui/material";
 import { getTheme } from "./theme";
 import { store, RootState } from "@/store";
