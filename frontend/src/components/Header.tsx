@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   AppBar,
   Toolbar,
@@ -52,7 +52,9 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
   const mode = useSelector((state: RootState) => state.theme.mode);
   const isLight = mode === "light";
 
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
   const user = useSelector((state: RootState) => state.auth.user);
 
   const handleThemeChange = () => dispatch(toggleMode());
@@ -64,8 +66,6 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
     : "linear-gradient(90deg, #332a6d 0%, #1d1649 100%)";
 
   const navHoverColor = "#4b0082";
-  const signupColor = "#b36fff";
-  const signupHover = "#7a2cc2";
 
   const navLinks = [
     { label: "Home", href: "/" },
@@ -76,41 +76,90 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
 
   const BACKEND_URL = "http://localhost:8000";
 
-  // ---------- Search State ----------
+  // ================= SEARCH STATE =================
   const [symbolInput, setSymbolInput] = useState("");
-  const [searchSuggestions, setSearchSuggestions] = useState<StockSuggestion[]>([]);
-  const [dropdownSuggestions, setDropdownSuggestions] = useState<StockSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<StockSuggestion[]>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-  // ---------- Fetch search suggestions ----------
+  // ---------- Smooth Search Suggestions ----------
   useEffect(() => {
-    if (!symbolInput) {
-      setSearchSuggestions([]);
+    // Only search if user is authenticated and input exists
+    if (!symbolInput || !isAuthenticated) {
+      setSuggestions([]);
+      setIsDropdownOpen(false);
       return;
     }
 
-    fetch(`${BACKEND_URL}/api/search-suggestions?q=${symbolInput}`)
-      .then((res) => res.json())
-      .then((data) => setSearchSuggestions(data));
-  }, [symbolInput]);
+    const timeout = setTimeout(() => {
+      fetch(`${BACKEND_URL}/api/search-suggestions?q=${symbolInput}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setSuggestions(data);
+          setIsDropdownOpen(true);
+        })
+        .catch(() => setSuggestions([]));
+    }, 250);
 
-  // ---------- Search Handler with Auth Check ----------
+    return () => clearTimeout(timeout);
+  }, [symbolInput, isAuthenticated]);
+
+  // ---------- Close dropdown on outside click ----------
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ---------- Search Handler ----------
   const handleSearch = (symbol: string) => {
     if (!symbol) return;
 
+    // 1. Update UI: Set input to symbol and close list
+    setSymbolInput(symbol);
+    setSuggestions([]);
+    setIsDropdownOpen(false);
+
+    // 2. Auth Logic
     if (!isAuthenticated) {
       dispatch(setRedirectPath(`/analysis?symbol=${symbol}`));
-      onSignupClick?.();
+      onLoginClick?.(); // Show login instead of typing
       return;
     }
 
     router.push(`/analysis?symbol=${symbol}`);
   };
 
-  // ---------- Navigation with auth check ----------
+  // ---------- Dropdown Icon Click ----------
+  const handleDropdownClick = () => {
+    if (!isAuthenticated) {
+      onLoginClick?.();
+      return;
+    }
+
+    if (isDropdownOpen) {
+      setIsDropdownOpen(false);
+      return;
+    }
+
+    fetch(`${BACKEND_URL}/api/all-stocks`)
+      .then((res) => res.json())
+      .then((data) => {
+        setSuggestions(data);
+        setIsDropdownOpen(true);
+      });
+  };
+
+  // ---------- Navigation ----------
   const handleNavClick = (href: string) => {
     if (!isAuthenticated && href !== "/") {
       dispatch(setRedirectPath(href));
-      onSignupClick?.();
+      onLoginClick?.();
       return;
     }
     router.push(href);
@@ -147,21 +196,17 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
             <MenuIcon />
           </IconButton>
 
-          {/* Desktop Nav Links */}
           <Box display={{ xs: "none", md: "flex" }} alignItems="center" gap={3} ml={2}>
             {navLinks.map((item) => (
               <Typography
                 key={item.label}
-                variant="body1"
                 onClick={() => handleNavClick(item.href)}
                 sx={{
                   cursor: "pointer",
                   fontWeight: 500,
-                  transition: "0.3s",
-                  "&:hover": {
-                    color: navHoverColor,
-                    textShadow: "0px 0px 5px #fff",
-                  },
+                  fontSize: "0.95rem",
+                  transition: "color 0.2s",
+                  "&:hover": { color: navHoverColor },
                 }}
               >
                 {item.label}
@@ -170,116 +215,105 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
           </Box>
         </Box>
 
-        {/* Center Search + Dropdown */}
-        <Box
-          sx={{
-            width: { xs: "100%", md: "40%" },
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            mt: { xs: 1, md: 0 },
-          }}
-        >
+        {/* Center Search - Chukul Style */}
+        <Box sx={{ width: { xs: "100%", md: "40%" }, position: "relative" }} ref={searchRef}>
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              bgcolor: "#fff",
-              borderRadius: 1,
-              pl: 1,
+              bgcolor: isLight ? "#fff" : alpha("#fff", 0.15),
+              borderRadius: "8px",
+              pl: 1.5,
+              transition: "box-shadow 0.3s",
+              "&:focus-within": {
+                boxShadow: "0 0 0 2px rgba(255,255,255,0.5)",
+              },
+              cursor: !isAuthenticated ? "pointer" : "text"
             }}
+            onClick={() => !isAuthenticated && onLoginClick?.()}
           >
             <TextField
               fullWidth
               variant="standard"
               placeholder="Search stock or company"
               value={symbolInput}
-              onChange={(e) => setSymbolInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch(symbolInput);
-              }}
+              disabled={!isAuthenticated}
+              onChange={(e) => setSymbolInput(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(symbolInput)}
+              sx={{ input: { color: isLight ? "black" : "white" } }}
               InputProps={{
                 disableUnderline: true,
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon
-                      sx={{ cursor: "pointer" }}
-                      onClick={() => handleSearch(symbolInput)}
-                    />
+                    <SearchIcon sx={{ color: isLight ? "#666" : "#ccc" }} />
                   </InputAdornment>
                 ),
               }}
             />
 
-            <IconButton
-              size="small"
-              sx={{ ml: 1 }}
-              onClick={() => {
-                if (!isAuthenticated) {
-                  onSignupClick?.();
-                  return;
-                }
-                fetch(`${BACKEND_URL}/api/all-stocks`)
-                  .then((res) => res.json())
-                  .then((data) => setDropdownSuggestions(data));
+            <IconButton 
+              size="small" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDropdownClick();
               }}
+              sx={{ color: isLight ? "#666" : "#ccc" }}
             >
               <ArrowDropDownIcon />
             </IconButton>
           </Box>
 
-          {/* Dropdown suggestions when arrow clicked */}
-          {dropdownSuggestions.length > 0 && !symbolInput && (
+          {/* Suggestions List */}
+          {isDropdownOpen && suggestions.length > 0 && (
             <Paper
+              elevation={8}
               sx={{
                 position: "absolute",
                 width: "100%",
-                top: "100%",
-                mt: 1,
+                top: "110%",
+                left: 0,
                 zIndex: 2000,
-                maxHeight: 300,
+                maxHeight: 350,
                 overflowY: "auto",
-                borderRadius: 1,
+                borderRadius: 2,
+                bgcolor: isLight ? "white" : "#1e1e1e",
+                border: isLight ? "1px solid #eee" : "1px solid #333",
               }}
             >
-              {dropdownSuggestions.map((s) => (
+              {suggestions.map((s) => (
                 <Box
-                  key={s.symbol}
-                  p={1.2}
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => handleSearch(s.symbol)}
-                >
-                  <Typography fontWeight={700}>{s.symbol}</Typography>
-                  <Typography fontSize={12}>{s.company_name}</Typography>
-                </Box>
-              ))}
-            </Paper>
-          )}
+  key={s.symbol}
+  px={2}
+  py={1.5}
+  sx={{
+    display: "flex",
+    flexDirection: "column",
+    cursor: "pointer",
+    borderBottom: isLight ? "1px solid #f0f0f0" : "1px solid #2d2d2d",
+    "&:hover": {
+      bgcolor: isLight ? alpha("#6e4adb", 0.08) : alpha("#fff", 0.05),
+    },
+    "&:last-child": { borderBottom: "none" },
+  }}
+  onClick={() => handleSearch(s.symbol)}
+>
+  {/* Top row */}
+  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <Typography fontWeight={700} color={isLight ? "primary.main" : "#bb86fc"}>
+      {s.symbol}
+    </Typography>
 
-          {/* Live suggestions while typing */}
-          {searchSuggestions.length > 0 && symbolInput && (
-            <Paper
-              sx={{
-                position: "absolute",
-                width: "100%",
-                top: "100%",
-                mt: 1,
-                zIndex: 2000,
-                maxHeight: 300,
-                overflowY: "auto",
-                borderRadius: 1,
-              }}
-            >
-              {searchSuggestions.map((s) => (
-                <Box
-                  key={s.symbol}
-                  p={1.2}
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => handleSearch(s.symbol)}
-                >
-                  <Typography fontWeight={700}>{s.symbol}</Typography>
-                  <Typography fontSize={12}>{s.company_name}</Typography>
-                </Box>
+    <Typography fontSize={12} color="text.secondary" noWrap>
+      {s.category}
+    </Typography>
+  </Box>
+
+  {/* Bottom row */}
+  <Typography fontSize={13} color="text.secondary" noWrap>
+    {s.company_name}
+  </Typography>
+</Box>
+
               ))}
             </Paper>
           )}
@@ -287,64 +321,40 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
 
         {/* Right Section */}
         <Box display="flex" alignItems="center" gap={1.5}>
-          <IconButton
-            color="inherit"
-            onClick={handleThemeChange}
-            sx={{
-              bgcolor: alpha("#fff", 0.15),
-              "&:hover": { bgcolor: alpha("#fff", 0.3) },
-            }}
-          >
+          <IconButton color="inherit" onClick={handleThemeChange}>
             {isLight ? <DarkMode /> : <LightMode />}
           </IconButton>
 
           {!isAuthenticated ? (
-            <>
-              <Button
-                variant="outlined"
-                sx={{
-                  color: "#fff",
-                  borderColor: alpha("#fff", 0.8),
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontWeight: 500,
-                  "&:hover": { bgcolor: alpha("#fff", 0.25), color: navHoverColor },
-                  display: { xs: "none", sm: "inline-flex" },
-                }}
+            <Box display="flex" gap={1}>
+              <Button 
+                variant="outlined" 
+                color="inherit" 
                 onClick={onLoginClick}
+                sx={{ borderRadius: "20px", textTransform: "none" }}
               >
                 Login
               </Button>
-
-              <Button
-                variant="contained"
-                sx={{
-                  bgcolor: signupColor,
-                  color: "#4a2fa1",
-                  fontWeight: 600,
-                  borderRadius: 2,
+              <Button 
+                variant="contained" 
+                sx={{ 
+                  borderRadius: "20px", 
+                  bgcolor: "white", 
+                  color: "#6e4adb", 
                   textTransform: "none",
-                  "&:hover": { bgcolor: signupHover, color: "#fff" },
-                  display: { xs: "none", sm: "inline-flex" },
-                }}
+                  "&:hover": { bgcolor: "#f0f0f0" }
+                }} 
                 onClick={onSignupClick}
               >
                 Sign Up
               </Button>
-            </>
+            </Box>
           ) : (
-            <Box display="flex" alignItems="center" gap={1}>
-              <Avatar
-                sx={{
-                  bgcolor: alpha("#fff", 0.2),
-                  width: 28,
-                  height: 28,
-                }}
-              >
-                <PersonIcon fontSize="small" sx={{ color: "white" }} />
+            <Box display="flex" alignItems="center" gap={1} sx={{ cursor: "pointer" }}>
+              <Avatar sx={{ width: 35, height: 35, bgcolor: alpha("#fff", 0.2) }}>
+                <PersonIcon />
               </Avatar>
-
-              <Typography fontWeight={500} color="white">
+              <Typography variant="body2" sx={{ display: { xs: "none", sm: "block" } }}>
                 {user?.fullName}
               </Typography>
             </Box>
@@ -353,28 +363,29 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
 
         {/* Mobile Drawer */}
         <Drawer anchor="left" open={mobileOpen} onClose={toggleDrawer}>
-          <Box sx={{ width: 250, background: headerGradient, height: "100%", color: "white", p: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6" fontWeight={600}>
-                FinSight
-              </Typography>
+          <Box sx={{ width: 280, background: headerGradient, height: "100%", color: "white", p: 3 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+              <Typography variant="h6" fontWeight={700}>FinSight</Typography>
               <IconButton color="inherit" onClick={toggleDrawer}>
                 <CloseIcon />
               </IconButton>
             </Box>
 
-            <Divider sx={{ mb: 2 }} />
-
             <List>
               {navLinks.map((item) => (
                 <ListItem
                   key={item.label}
+                  disablePadding
+                  sx={{ mb: 2 }}
                   onClick={() => {
                     handleNavClick(item.href);
                     toggleDrawer();
                   }}
                 >
-                  <ListItemText primary={item.label} />
+                  <ListItemText 
+                    primary={item.label} 
+                    primaryTypographyProps={{ fontSize: "1.1rem", fontWeight: 500 }}
+                  />
                 </ListItem>
               ))}
             </List>
