@@ -50,7 +50,10 @@ const Footer = () => {
           <Link
             href="mailto:prashuna.shrestha021@apexcollege.edu.np"
             underline="hover"
-            sx={{ color: "rgba(255,255,255,0.9)", "&:hover": { color: "#FFD700" } }}
+            sx={{
+              color: "rgba(255,255,255,0.9)",
+              "&:hover": { color: "#FFD700" },
+            }}
           >
             prashuna.shrestha021@apexcollege.edu.np
           </Link>
@@ -61,7 +64,10 @@ const Footer = () => {
           <Link
             href="mailto:pratima.singh021@apexcollege.edu.np"
             underline="hover"
-            sx={{ color: "rgba(255,255,255,0.9)", "&:hover": { color: "#FFD700" } }}
+            sx={{
+              color: "rgba(255,255,255,0.9)",
+              "&:hover": { color: "#FFD700" },
+            }}
           >
             pratima.singh021@apexcollege.edu.np
           </Link>
@@ -81,7 +87,10 @@ const Footer = () => {
           <Link
             href="tel:9864111755"
             underline="hover"
-            sx={{ color: "rgba(255,255,255,0.9)", "&:hover": { color: "#FFD700" } }}
+            sx={{
+              color: "rgba(255,255,255,0.9)",
+              "&:hover": { color: "#FFD700" },
+            }}
           >
             9864111755
           </Link>
@@ -92,7 +101,10 @@ const Footer = () => {
           <Link
             href="tel:9803257815"
             underline="hover"
-            sx={{ color: "rgba(255,255,255,0.9)", "&:hover": { color: "#FFD700" } }}
+            sx={{
+              color: "rgba(255,255,255,0.9)",
+              "&:hover": { color: "#FFD700" },
+            }}
           >
             9803257815
           </Link>
