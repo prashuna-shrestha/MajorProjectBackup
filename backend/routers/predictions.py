@@ -1,23 +1,27 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException  # FastAPI router and exception handling
+from pydantic import BaseModel  # For request/response data validation
 import sys
 import os
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from utils.preprocessing import scale_data
-from sqlalchemy import create_engine
+import tensorflow as tf  # TensorFlow for LSTM model loading
+from utils.preprocessing import scale_data  # Custom scaling utility
+from sqlalchemy import create_engine  # SQLAlchemy engine for DB connection
 
 # Add parent directory to sys.path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
-from ML.train_lstm import DB_CONFIG
+from ML.train_lstm import DB_CONFIG  # Database configuration for fetching stock data
 
+# Initialize FastAPI router
 router = APIRouter()
 
 # --- Response model ---
 class TechnicalPredictionResponse(BaseModel):
+    """
+    Pydantic model to define the structure of the API response.
+    """
     symbol: str
     very_short_term: str
     short_term: str
@@ -26,8 +30,20 @@ class TechnicalPredictionResponse(BaseModel):
     confidence: float
 
 # --- Helper functions ---
+
 def determine_trend(current, predicted, threshold=0.01):
-    """Classify trend based on percentage change."""
+    """
+    Classify trend based on percentage change.
+    
+    Args:
+        current (float): Current stock price
+        predicted (float): Predicted stock price
+        threshold (float): Minimum percentage change to consider as trend
+        
+    Returns:
+        trend (str): 'Uptrend', 'Downtrend', or 'Sideways'
+        confidence (float): Percentage magnitude of the change (0-100)
+    """
     change = (predicted - current) / current
     if change > threshold:
         return "Uptrend", min(change * 100, 100)
@@ -39,24 +55,41 @@ def determine_trend(current, predicted, threshold=0.01):
 def iterative_prediction(model, last_window, days):
     """
     Predict next 'days' prices iteratively using the LSTM model.
-    last_window: array of shape (window_size, 1)
-    Returns final predicted price.
+    
+    Args:
+        model (tf.keras.Model): Pre-trained LSTM model
+        last_window (np.array): Last 60 price points, shape (window_size, 1)
+        days (int): Number of days ahead to predict
+    
+    Returns:
+        float: Final predicted scaled price
     """
     window = last_window.copy()
     for _ in range(days):
+        # Reshape for LSTM input (batch_size=1, time_steps=60, features=1)
         x_input = window[-60:].reshape(1, 60, 1)
-        pred_scaled = model.predict(x_input, verbose=0)
-        window = np.append(window, pred_scaled[-1])
-    return window[-1]
+        pred_scaled = model.predict(x_input, verbose=0)  # Predict next value
+        window = np.append(window, pred_scaled[-1])  # Append prediction to window
+    return window[-1]  # Return last predicted value
 
 # --- Endpoint ---
 @router.get("/predict", response_model=TechnicalPredictionResponse)
 def predict(symbol: str):
+    """
+    Endpoint to predict stock trends for a given symbol.
+    
+    Args:
+        symbol (str): Stock symbol to predict
+    
+    Returns:
+        dict: Predicted trends and confidence for multiple horizons
+    """
     # Model path
     MODEL_DIR = os.path.join(BASE_DIR, "ML", "models")
     model_path = os.path.join(MODEL_DIR, f"{symbol}_model.h5")
     print("Loading model from:", model_path)
 
+    # Check if model exists
     if not os.path.exists(model_path):
         raise HTTPException(status_code=404, detail="Model not found. Train LSTM first.")
 
@@ -72,6 +105,7 @@ def predict(symbol: str):
         DB_URL = f"postgresql+psycopg2://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
         engine = create_engine(DB_URL)
 
+        # Fetch historical closing prices for the symbol
         query = "SELECT close FROM stocks WHERE symbol=%s ORDER BY date ASC"
         df = pd.read_sql(query, engine, params=(symbol,))
         print(f"Data fetched for {symbol}, shape:", df.shape)
@@ -79,16 +113,17 @@ def predict(symbol: str):
         print("Database error:", e)
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
+    # Check if data exists
     if df.empty:
         raise HTTPException(status_code=404, detail="Symbol not found or no data available")
 
     # Prepare data for prediction
-    data = df["close"].values.reshape(-1, 1)
-    scaled, scaler = scale_data(data)
-    last_window = scaled[-60:].reshape(-1, 1)
-    current_close = df["close"].iloc[-1]
+    data = df["close"].values.reshape(-1, 1)  # Extract closing prices
+    scaled, scaler = scale_data(data)  # Scale prices
+    last_window = scaled[-60:].reshape(-1, 1)  # Last 60 days for prediction
+    current_close = df["close"].iloc[-1]  # Current closing price
 
-    # Define horizons in days
+    # Define prediction horizons in days
     horizons = {
         "very_short_term": 3,
         "short_term": 7,
@@ -96,12 +131,14 @@ def predict(symbol: str):
         "long_term": 60
     }
 
-    trends = {}
-    confidences = []
+    trends = {}  # Store trends for each horizon
+    confidences = []  # Store confidence values
 
+    # Generate predictions for each horizon
     for key, days in horizons.items():
         predicted_scaled = iterative_prediction(model, last_window, days)
         predicted_price = scaler.inverse_transform(np.array([[predicted_scaled]]))[0][0]
+        # confidence is calculated here
         trend, conf = determine_trend(current_close, predicted_price)
         trends[key] = trend
         confidences.append(conf)
@@ -110,6 +147,7 @@ def predict(symbol: str):
 
     print(f"{symbol} predictions: {trends}, confidence: {overall_confidence}%")
 
+    # Return API response
     return {
         "symbol": symbol,
         **trends,
