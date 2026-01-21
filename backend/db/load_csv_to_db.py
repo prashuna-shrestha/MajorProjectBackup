@@ -1,34 +1,58 @@
+# Import pandas library for reading and handling CSV data
 import pandas as pd
+
+# Import psycopg2 to connect Python with PostgreSQL
 import psycopg2
+
+# Import execute_values for fast bulk insert into PostgreSQL
 from psycopg2.extras import execute_values
 
+
+# Path to the cleaned CSV file (relative path)
 csv_file = '../../data/clean/merged_stock_nepse.csv'
 
-# Load CSV
+
+# -------------------------------
+# Load CSV into a pandas DataFrame
+# -------------------------------
+# parse_dates converts the 'date' column into pandas datetime format
 df = pd.read_csv(csv_file, parse_dates=['date'])
 
-# Ensure date is a Python date (not pandas Timestamp)
+# PostgreSQL prefers Python date objects instead of pandas Timestamp
 df['date'] = df['date'].dt.date
 
-# Ensure all numeric columns are native Python float (not numpy.float64)
+# List of columns that should contain numeric values
 numeric_cols = ['open', 'high', 'low', 'close', 'close_norm']
+
+# Convert each value to native Python float
+# If value is missing (NaN), convert it to None
 for col in numeric_cols:
     df[col] = df[col].apply(lambda x: float(x) if pd.notnull(x) else None)
 
-# Convert dataframe to list of tuples
+
+# --------------------------------------------------
+# Convert DataFrame rows into list of tuples
+# --------------------------------------------------
 values = [tuple(row) for row in df.itertuples(index=False, name=None)]
 
-# Connect to PostgreSQL
+
+# -------------------------------
+# Connect to PostgreSQL database
+# -------------------------------
 conn = psycopg2.connect(
-    dbname='stock_data',
-    user='postgres',
-    password='root',
-    host='localhost',
-    port='5433'
+    dbname='stock_data',   # Database name
+    user='postgres',       # Database username
+    password='root',       # Database password
+    host='localhost',      # Database host
+    port='5433'            # Database port
 )
+
+# Create a cursor to execute SQL commands
 cur = conn.cursor()
 
-# Insert data efficiently
+# --------------------------------------------------
+# Insert data into the database efficiently
+# --------------------------------------------------
 execute_values(
     cur,
     """
@@ -38,8 +62,16 @@ execute_values(
     values
 )
 
+
+# Save (commit) all changes to the database
 conn.commit()
+
+# Close the cursor
 cur.close()
+
+# Close the database connection
 conn.close()
 
+
+# Success message
 print("CSV imported successfully!")
