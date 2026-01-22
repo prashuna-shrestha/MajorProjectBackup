@@ -15,8 +15,10 @@ import {
 } from "lucide-react";
 import { RootState } from "@/store";
 
+// Backend API URL
 const BACKEND_URL = "http://localhost:8000";
 
+// Type for stock data returned by backend
 interface StockData {
   close: number;
   high: number;
@@ -25,36 +27,49 @@ interface StockData {
 }
 
 const AnalysisPage: React.FC = () => {
+  //===========================
+  // 1. URL Params & Theme
+  //===========================
   const searchParams = useSearchParams();
-  const symbolParam = searchParams.get("symbol") || "NEPSE";
+  const symbolParam = searchParams.get("symbol") || "NEPSE"; // Default symbol
 
-  const theme = useSelector((state: RootState) => state.theme.mode) || "light";
+  const theme = useSelector((state: RootState) => state.theme.mode) || "light"; // Current theme
 
-  const [data, setData] = useState<StockData[]>([]);
-  const [selectedTrends, setSelectedTrends] = useState<string[]>(["EMA12", "EMA26"]);
-  const [timeframe, setTimeframe] = useState<string>("5Y");
-  const [loading, setLoading] = useState<boolean>(true);
-  const [mounted, setMounted] = useState<boolean>(false);
+  //===========================
+  // 2. Local State
+  //===========================
+  const [data, setData] = useState<StockData[]>([]);                // Stock price data
+  const [selectedTrends, setSelectedTrends] = useState<string[]>(["EMA12", "EMA26"]); // Active trends
+  const [timeframe, setTimeframe] = useState<string>("5Y");         // Selected timeframe
+  const [loading, setLoading] = useState<boolean>(true);            // Loading state
+  const [mounted, setMounted] = useState<boolean>(false);           // To prevent SSR issues
 
+  //===========================
+  // 3. Fetch Data Effects
+  //===========================
   useEffect(() => {
-    setMounted(true);
-    fetchStockData(symbolParam, timeframe);
+    setMounted(true);                       // Component mounted
+    fetchStockData(symbolParam, timeframe); // Fetch stock data
   }, [symbolParam, timeframe]);
 
+  // Reset timeframe when symbol changes
   useEffect(() => {
     setTimeframe("5Y");
   }, [symbolParam]);
 
+  //===========================
+  // 4. Fetch Stock Data
+  //===========================
   const fetchStockData = async (symbol: string, tf: string): Promise<void> => {
     try {
       setLoading(true);
       const res = await fetch(`${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}`);
       if (!res.ok) {
-        setData([]);
+        setData([]); // Clear data on error
         return;
       }
       const json = await res.json();
-      setData(Array.isArray(json.records) ? json.records : []);
+      setData(Array.isArray(json.records) ? json.records : []); // Ensure array
     } catch (err) {
       console.error("Error fetching:", err);
       setData([]);
@@ -63,12 +78,18 @@ const AnalysisPage: React.FC = () => {
     }
   };
 
-  const handleFilterChange = (tf: string) => setTimeframe(tf);
+  //===========================
+  // 5. Handlers
+  //===========================
+  const handleFilterChange = (tf: string) => setTimeframe(tf); // Change timeframe
   const handleToggle = (trend: string) =>
     setSelectedTrends((prev) =>
       prev.includes(trend) ? prev.filter((t) => t !== trend) : [...prev, trend]
-    );
+    ); // Toggle technical trend
 
+  //===========================
+  // 6. Icons for trends
+  //===========================
   const getTrendIcon = (trend: string) => {
     switch (trend) {
       case "EMA12":
@@ -86,6 +107,7 @@ const AnalysisPage: React.FC = () => {
     }
   };
 
+  // Timeframe display labels
   const timeframeLabels: Record<string, string> = {
     "1D": "1Day",
     "1W": "1Week",
@@ -95,6 +117,9 @@ const AnalysisPage: React.FC = () => {
     "5Y": "5Year",
   };
 
+  //===========================
+  // 7. Theme Styles
+  //===========================
   const isDark = theme === "dark";
 
   const themeStyles = {
@@ -110,8 +135,12 @@ const AnalysisPage: React.FC = () => {
     hoverBackground: isDark ? "#4b5563" : "#f1f5f9",
   };
 
+  // Prevent SSR mismatch
   if (!mounted) return null;
 
+  //===========================
+  // 8. Render
+  //===========================
   return (
     <div
       style={{
@@ -123,8 +152,9 @@ const AnalysisPage: React.FC = () => {
         transition: "background-color 0.3s ease, color 0.3s ease",
       }}
     >
+      {/* Main content */}
       <main style={{ flex: 1, padding: "20px 40px" }}>
-        {/* Hero Section - smaller height */}
+        {/*==================== HERO SECTION ====================*/}
         <div
           style={{
             width: "100%",
@@ -143,6 +173,7 @@ const AnalysisPage: React.FC = () => {
             borderRadius: "16px",
           }}
         >
+          {/* Icon Circle */}
           <div
             style={{
               width: "60px",
@@ -161,9 +192,10 @@ const AnalysisPage: React.FC = () => {
             <TrendingUp size={28} color="#fff" />
           </div>
 
+          {/* Hero Title */}
           <h1
             style={{
-              fontSize: "2rem", // smaller
+              fontSize: "2rem",
               fontWeight: 700,
               marginBottom: "8px",
               background: "linear-gradient(90deg, #3b82f6 0%, #10b981 100%)",
@@ -174,6 +206,7 @@ const AnalysisPage: React.FC = () => {
             Stock Trend Prediction System
           </h1>
 
+          {/* Hero Description */}
           <p
             style={{
               fontSize: "1rem",
@@ -183,11 +216,13 @@ const AnalysisPage: React.FC = () => {
               color: isDark ? "#d1d5db" : "#4b5563",
             }}
           >
-            This system analyzes Nepal Stock Exchange data using technical indicators and machine learning models to identify market trends and provide predictive insights based on historical patterns.
+            This system analyzes Nepal Stock Exchange data using technical indicators
+            and machine learning models to identify market trends and provide predictive
+            insights based on historical patterns.
           </p>
         </div>
 
-        {/* Containers row: Timeframe + Indicators */}
+        {/*==================== CONTAINERS: TIMEFRAME + INDICATORS ====================*/}
         <div
           style={{
             display: "flex",
@@ -208,12 +243,15 @@ const AnalysisPage: React.FC = () => {
               border: `1px solid ${themeStyles.cardBorder}`,
             }}
           >
+            {/* Header */}
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
               <Zap size={18} color="#f59e0b" />
               <h3 style={{ fontSize: "16px", fontWeight: 600, margin: 0, color: themeStyles.textPrimary }}>
                 Timeframe
               </h3>
             </div>
+
+            {/* Timeframe Buttons */}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {Object.entries(timeframeLabels).map(([key, label]) => (
                 <button
@@ -244,7 +282,8 @@ const AnalysisPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Technical Indicators Container */}
+
+          {/*==================== TECHNICAL INDICATORS CONTAINER ====================*/}
           <div
             style={{
               flex: 1,
@@ -255,17 +294,19 @@ const AnalysisPage: React.FC = () => {
               border: `1px solid ${themeStyles.cardBorder}`,
             }}
           >
+            {/* Header: Icon + Title */}
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
               <Activity size={18} color="#06b6d4" />
               <h3 style={{ fontSize: "16px", fontWeight: 600, margin: 0, color: themeStyles.textPrimary }}>
                 Technical Indicators
               </h3>
             </div>
+              {/* Buttons for each indicator */}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {["EMA12", "EMA26", "BB", "RSI", "VOLUME"].map((trend) => (
                 <button
                   key={trend}
-                  onClick={() => handleToggle(trend)}
+                  onClick={() => handleToggle(trend)}     //Toggle indicator
                   style={{
                     padding: "10px 16px",
                     borderRadius: "8px",
@@ -277,11 +318,13 @@ const AnalysisPage: React.FC = () => {
                     gap: "8px",
                     ...(selectedTrends.includes(trend)
                       ? {
+                           // Active indicator style
                           background: "linear-gradient(135deg, #0ea5e9, #06b6d4)",
                           color: "#fff",
                           border: "none",
                         }
                       : {
+                         // Inactive indicator style
                           backgroundColor: themeStyles.buttonBackground,
                           color: themeStyles.buttonText,
                           border: `1px solid ${themeStyles.buttonBorder}`,
@@ -296,12 +339,15 @@ const AnalysisPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Market Trend */}
+        {/*==================== MARKET TREND STATUS ====================*/}
         {data.length > 0 && (
           <div style={{ marginBottom: "20px", display: "flex", gap: "12px", alignItems: "center", paddingLeft: "10px" }}>
+            {/* Label */}
             <span style={{ fontSize: "14px", fontWeight: 600, color: themeStyles.textSecondary }}>
               Market Trend:
             </span>
+
+             {/* Trend Indicator Badge */}
             <span
               style={{
                 padding: "6px 16px",
@@ -333,9 +379,9 @@ const AnalysisPage: React.FC = () => {
           </div>
         )}
 
-        {/* Chart + TechnicalStatus */}
+        {/*==================== CHART + TECHNICAL STATUS ====================*/}
         <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          {/* Chart */}
+          {/* STOCK CHART CONTAINER */}
           <div style={{ flex: "1 1 700px", minHeight: "600px" }}>
             <div
               style={{
@@ -347,6 +393,8 @@ const AnalysisPage: React.FC = () => {
                 minHeight: "550px",
               }}
             >
+
+                 {/* Chart Header */}
               <div
                 style={{
                   marginBottom: "15px",
@@ -358,8 +406,11 @@ const AnalysisPage: React.FC = () => {
                   <BarChart3 size={20} color="#3b82f6" /> {symbolParam} Price Chart
                 </h3>
               </div>
+
+               {/* Chart or Loading Spinner */}
               <div style={{ minHeight: "450px" }}>
                 {loading ? (
+                   // Loading Spinner
                   <div
                     style={{
                       height: "100%",
@@ -385,19 +436,21 @@ const AnalysisPage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
+                   // Render chart component
                   <StockChart data={data} selectedTrends={selectedTrends} />
                 )}
               </div>
             </div>
           </div>
 
-          {/* Technical Status */}
+          {/* TECHNICAL STATUS PANEL */}
           <div style={{ flex: 1, minWidth: "48%" }}>
             <TechnicalStatus symbol={symbolParam} />
           </div>
         </div>
       </main>
 
+      {/*==================== GLOBAL SPINNER ANIMATION ====================*/}
       <style jsx global>{`
         @keyframes spin {
           0% {

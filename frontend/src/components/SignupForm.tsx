@@ -1,6 +1,13 @@
 "use client";
 
+
+//===================================================
+// 1. Package Imports
+//===================================================
+// React core and state management
 import React, { useState } from "react";
+
+// Material UI components for layout and inputs
 import {
   Box,
   Button,
@@ -9,38 +16,81 @@ import {
   Paper,
   IconButton,
 } from "@mui/material";
+
+// Material UI icons
 import CloseIcon from "@mui/icons-material/Close";
 
+
+//===================================================
+// 2. Component Props Interface
+//===================================================
+// closeModal     → closes the signup modal
+// switchToLogin  → switches UI to login form
 interface Props {
   closeModal: () => void;
   switchToLogin: () => void;
 }
 
+
+//===================================================
+// 3. SignupForm Component
+//===================================================
 export default function SignupForm({ closeModal, switchToLogin }: Props) {
+
+  //===================================================
+  // 3-1. Form State Management
+  //===================================================
+  // Stores user input values
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Error states
+
+  //===================================================
+  // 3-2. Error State Management
+  //===================================================
+  // Stores validation error messages for each field
   const [fullNameError, setFullNameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [serverError, setServerError] = useState("");
 
-  // Flag to indicate if the user clicked "Sign Up"
+
+  //===================================================
+  // 3-3. Submission State
+  //===================================================
+  // Indicates whether the user clicked "Sign Up"
+  // Used to control when validation errors appear
   const [submitted, setSubmitted] = useState(false);
 
-  // Regex for validation
+
+  //===================================================
+  // 3-4. Validation Rules (Regex)
+  //===================================================
+  // Email validation pattern
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Password validation pattern
+  // Must contain:
+  // - Minimum 8 characters
+  // - Uppercase letter
+  // - Lowercase letter
+  // - Number
+  // - Special character
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~`]).{8,}$/;
 
+
+  //===================================================
+  // 3-5. Form Validation Function
+  //===================================================
+  // Validates all form fields before submission
   const validate = () => {
     let valid = true;
 
-    // Full Name
+    // Full Name validation
     if (!fullName.trim()) {
       setFullNameError("Full name is required");
       valid = false;
@@ -48,7 +98,7 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
       setFullNameError("");
     }
 
-    // Email
+    // Email validation
     if (!email.trim()) {
       setEmailError("Email is required");
       valid = false;
@@ -59,7 +109,7 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
       setEmailError("");
     }
 
-    // Password
+    // Password validation
     if (!password) {
       setPasswordError("Password is required");
       valid = false;
@@ -72,7 +122,7 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
       setPasswordError("");
     }
 
-    // Confirm Password
+    // Confirm Password validation
     if (!confirmPassword) {
       setConfirmPasswordError("Please confirm your password");
       valid = false;
@@ -86,8 +136,14 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
     return valid;
   };
 
+
+  //===================================================
+  // 3-6. Signup Handler Function
+  //===================================================
+  // Sends signup request to backend API
+  // Performs validation before submission
   const handleSignup = async () => {
-    setSubmitted(true); // mark that user clicked submit
+    setSubmitted(true); // mark form as submitted
     setServerError("");
 
     if (!validate()) return;
@@ -105,18 +161,24 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
 
       const data = await res.json();
 
+      // Handle backend validation or server errors
       if (!res.ok) {
         setServerError(data.detail || "Signup failed");
         return;
       }
 
-      switchToLogin(); // Success
+      // On successful signup, switch to login form
+      switchToLogin();
     } catch (error) {
       console.error(error);
       setServerError("Server error");
     }
   };
 
+
+  //===================================================
+  // 4. UI Rendering (JSX)
+  //===================================================
   return (
     <Paper
       sx={{
@@ -130,7 +192,10 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         bgcolor: "background.paper",
       }}
     >
-      {/* Close button */}
+
+      {/* ==============================================
+          4-1. Close Button
+         ============================================== */}
       <IconButton
         onClick={closeModal}
         sx={{ position: "absolute", top: 8, right: 8 }}
@@ -138,7 +203,10 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         <CloseIcon />
       </IconButton>
 
-      {/* Logo */}
+
+      {/* ==============================================
+          4-2. Logo Section
+         ============================================== */}
       <Box display="flex" justifyContent="center" mb={2}>
         <img
           src="/assets/logo.png"
@@ -147,7 +215,10 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         />
       </Box>
 
-      {/* Heading */}
+
+      {/* ==============================================
+          4-3. Page Heading
+         ============================================== */}
       <Typography
         variant="h5"
         fontWeight="bold"
@@ -162,6 +233,10 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         Sign Up
       </Typography>
 
+
+      {/* ==============================================
+          4-4. Signup Form Fields
+         ============================================== */}
       <TextField
         fullWidth
         label="Full Name"
@@ -173,6 +248,7 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         error={submitted && !!fullNameError}
         helperText={submitted ? fullNameError : ""}
       />
+
       <TextField
         fullWidth
         label="Email"
@@ -184,6 +260,7 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         error={submitted && !!emailError}
         helperText={submitted ? emailError : ""}
       />
+
       <TextField
         fullWidth
         label="Password"
@@ -196,6 +273,7 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         error={submitted && !!passwordError}
         helperText={submitted ? passwordError : ""}
       />
+
       <TextField
         fullWidth
         label="Confirm Password"
@@ -209,13 +287,20 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         helperText={submitted ? confirmPasswordError : ""}
       />
 
-      {/* Server error */}
+
+      {/* ==============================================
+          4-5. Server Error Message
+         ============================================== */}
       {submitted && serverError && (
         <Typography color="error" fontSize={12} mt={1} textAlign="center">
           {serverError}
         </Typography>
       )}
 
+
+      {/* ==============================================
+          4-6. Signup Button
+         ============================================== */}
       <Button
         fullWidth
         variant="contained"
@@ -231,6 +316,10 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         Sign Up
       </Button>
 
+
+      {/* ==============================================
+          4-7. Login Redirect Text
+         ============================================== */}
       <Typography variant="body2" textAlign="center" mt={2}>
         Already have an account?{" "}
         <span

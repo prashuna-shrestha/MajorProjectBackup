@@ -9,43 +9,66 @@ import { Dialog } from "@mui/material";
 import LoginForm from "@/components/LoginForm";
 import SignupForm from "@/components/SignupForm";
 
+//===================================================
+// 1. AppShell Component
+//===================================================
+// This component wraps the entire app layout, including
+// the header, footer, and modals for login/signup.
 export default function AppShell({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode; // Main content passed from pages
 }) {
-  const pathname = usePathname();
-  const isHome = pathname === "/";
+  const pathname = usePathname(); // Get current route
+  const isHome = pathname === "/"; // Only allow modals on home page
 
+  //====================
+  // 2. Modal States
+  //====================
   const [openLogin, setOpenLogin] = useState(false);
   const [openSignup, setOpenSignup] = useState(false);
 
+  //====================
+  // 3. Modal Handlers
+  //====================
   const openLoginModal = () => {
-    if (!isHome) return;
+    if (!isHome) return; // Only open on home page
     setOpenLogin(true);
-    setOpenSignup(false);
+    setOpenSignup(false); // Ensure only one modal is open
   };
 
   const openSignupModal = () => {
-    if (!isHome) return;
+    if (!isHome) return; // Only open on home page
     setOpenSignup(true);
-    setOpenLogin(false);
+    setOpenLogin(false); // Ensure only one modal is open
   };
 
   return (
     <>
+      {/*====================
+          Header Section
+        ====================*/}
       <Header
         onLoginClick={isHome ? openLoginModal : undefined}
         onSignupClick={isHome ? openSignupModal : undefined}
       />
 
+      {/*====================
+          Main Content
+        ====================*/}
       <main style={{ flex: 1 }}>{children}</main>
 
+      {/*====================
+          Footer Section
+        ====================*/}
       <Footer />
 
-      {/* Render dialogs ONLY on home */}
+      {/*====================
+          Login & Signup Dialogs (Home Page Only)
+        ====================*/}
       {isHome && (
         <>
+          {/* Login Modal */}
           <Dialog
             open={openLogin}
             onClose={() => setOpenLogin(false)}
@@ -66,10 +89,11 @@ export default function AppShell({
           >
             <LoginForm
               closeModal={() => setOpenLogin(false)}
-              switchToSignup={openSignupModal}
+              switchToSignup={openSignupModal} // Allow switching to signup modal
             />
           </Dialog>
 
+          {/* Signup Modal */}
           <Dialog
             open={openSignup}
             onClose={() => setOpenSignup(false)}
@@ -90,7 +114,7 @@ export default function AppShell({
           >
             <SignupForm
               closeModal={() => setOpenSignup(false)}
-              switchToLogin={openLoginModal}
+              switchToLogin={openLoginModal} // Allow switching to login modal
             />
           </Dialog>
         </>
