@@ -17,6 +17,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
+// Define stock type
 type Stock = {
   symbol: string;
   company_name: string;
@@ -27,24 +28,29 @@ type Stock = {
 
 export default function HomePage() {
   const theme = useTheme();
-  const isMobile = useMediaQuery("(max-width:900px)");
-  const [gainers, setGainers] = useState<Stock[]>([]);
-  const [losers, setLosers] = useState<Stock[]>([]);
+  const isMobile = useMediaQuery("(max-width:900px)"); // responsive check
+  const [gainers, setGainers] = useState<Stock[]>([]); // top gainers
+  const [losers, setLosers] = useState<Stock[]>([]);   // top losers
 
+  // Fetch market movers data on mount
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/market-movers")
       .then((res) => res.json())
       .then((data) => {
-        setGainers((data.gainers || []).slice(0, 10));
-        setLosers((data.losers || []).slice(0, 10));
+        setGainers((data.gainers || []).slice(0, 10)); // take top 10
+        setLosers((data.losers || []).slice(0, 10));   // take top 10
       })
       .catch((err) => console.error("Market movers error:", err));
   }, []);
 
-  // Mini chart (keep original green/red)
+  // -------------------------
+  // Function: render mini trend chart for each stock
+  // -------------------------
   const renderChart = (prices: number[], positive: boolean) => {
-    const chartData = prices.map((price, index) => ({ day: `D${7 - index}`, price })).reverse();
-    const lineColor = positive ? "#4caf50" : "#f44336";
+    const chartData = prices
+      .map((price, index) => ({ day: `D${7 - index}`, price }))
+      .reverse();
+    const lineColor = positive ? "#4caf50" : "#f44336"; // green for gainers, red for losers
     const fillColor = positive ? "rgba(76, 175, 80, 0.2)" : "rgba(244, 67, 54, 0.2)";
 
     return (
@@ -66,8 +72,11 @@ export default function HomePage() {
     );
   };
 
+  // -------------------------
+  // Function: render stock table (gainers or losers)
+  // -------------------------
   const renderStockTable = (stocks: Stock[], positive: boolean) => {
-    const color = positive ? "#4caf50" : "#f44336";
+    const color = positive ? "#4caf50" : "#f44336"; // text color for % change
     return (
       <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3, bgcolor: theme.palette.background.paper }}>
         <Table sx={{ borderCollapse: "separate", borderSpacing: 0 }}>
@@ -111,10 +120,15 @@ export default function HomePage() {
                   },
                 }}
               >
+                {/* Stock symbol */}
                 <TableCell sx={{ fontWeight: 700, fontSize: "1rem", borderRight: `1px solid ${theme.palette.divider}` }}>
                   {s.symbol}
                 </TableCell>
+
+                {/* Company name */}
                 <TableCell sx={{ borderRight: `1px solid ${theme.palette.divider}` }}>{s.company_name}</TableCell>
+
+                {/* Current price */}
                 <TableCell sx={{ borderRight: `1px solid ${theme.palette.divider}` }}>
                   <Box
                     sx={{
@@ -129,10 +143,14 @@ export default function HomePage() {
                     {s.current_price.toFixed(2)}
                   </Box>
                 </TableCell>
+
+                {/* % change */}
                 <TableCell sx={{ color: color, fontWeight: 600, borderRight: `1px solid ${theme.palette.divider}` }}>
                   {positive ? "+" : ""}
                   {s.change_percent.toFixed(2)}%
                 </TableCell>
+
+                {/* Mini trend chart */}
                 <TableCell sx={{ width: 170, minWidth: 170 }}>{renderChart(s.last_7_days, positive)}</TableCell>
               </TableRow>
             ))}
@@ -145,7 +163,10 @@ export default function HomePage() {
   return (
     <Box sx={{ width: "100%", minHeight: "100vh", py: 4, bgcolor: theme.palette.background.default }}>
       <Container maxWidth="xl">
-        {/* Redesigned Market Movers Header */}
+        {/* ======================
+            Header Section: Market Movers
+            Includes gradient title, emoji icons, and animated accent line
+        ====================== */}
         <Box
           sx={{
             mb: 5,
@@ -158,7 +179,7 @@ export default function HomePage() {
             position: "relative",
           }}
         >
-          {/* Shadowed background */}
+          {/* Shadowed background behind title */}
           <Box
             sx={{
               position: "absolute",
@@ -172,13 +193,12 @@ export default function HomePage() {
             }}
           />
 
+          {/* Title with emojis */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            {/* Left icon */}
             <Typography fontSize={isMobile ? "1.3rem" : "1.6rem"} className="pulse-icon">
               💹
             </Typography>
 
-            {/* Gradient text */}
             <Typography
               variant={isMobile ? "h5" : "h4"}
               fontWeight={900}
@@ -193,7 +213,6 @@ export default function HomePage() {
               Market Movers
             </Typography>
 
-            {/* Right icons */}
             <Typography fontSize={isMobile ? "1.3rem" : "1.6rem"} className="pulse-icon">
               📊
             </Typography>
@@ -236,7 +255,9 @@ export default function HomePage() {
           />
         </Box>
 
-        {/* Tables Section */}
+        {/* ======================
+            Tables Section: Gainers & Losers
+        ====================== */}
         <Box
           sx={{
             display: "flex",
@@ -245,7 +266,7 @@ export default function HomePage() {
             width: "100%",
           }}
         >
-          {/* Left: Top Gainers */}
+          {/* Top Gainers */}
           <Box sx={{ flex: 1 }}>
             <Typography
               fontWeight={700}
@@ -259,7 +280,7 @@ export default function HomePage() {
             {renderStockTable(gainers, true)}
           </Box>
 
-          {/* Right: Top Losers */}
+          {/* Top Losers */}
           <Box sx={{ flex: 1 }}>
             <Typography
               fontWeight={700}
@@ -274,7 +295,9 @@ export default function HomePage() {
           </Box>
         </Box>
 
-        {/* Icon animation styles */}
+        {/* ======================
+            Animation styles
+        ====================== */}
         <style>
           {`
             @keyframes shine {

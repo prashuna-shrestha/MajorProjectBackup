@@ -5,21 +5,30 @@ import { Box, Typography, Stack, Divider } from "@mui/material";
 import { Email, Phone } from "@mui/icons-material";
 import Image from "next/image";
 
+// ===================================================
+// Footer Component
+// Displays branding, contact details, and copyright
+// ===================================================
 const Footer = () => {
   return (
     <Box
-      component="footer"
+      component="footer" // Semantic footer element
       sx={{
         color: "white",
         background: "linear-gradient(90deg, #6e4adb 0%, #5936d3 100%)",
-        py: { xs: 4, md: 5 },
-        px: { xs: 2, md: 6 },
+        py: { xs: 4, md: 5 }, // Responsive vertical padding
+        px: { xs: 2, md: 6 }, // Responsive horizontal padding
         textAlign: "center",
         width: "100%",
       }}
     >
-      {/* Logo */}
-      <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
+      {/* ===================== LOGO SECTION ===================== */}
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        mb={2}
+      >
         <Image
           src="/assets/logo.png"
           alt="FinSight Logo"
@@ -29,25 +38,26 @@ const Footer = () => {
         />
       </Box>
 
-      {/* Divider */}
+      {/* ===================== DIVIDER ===================== */}
       <Divider
         sx={{
-          bgcolor: "rgba(255,255,255,0.2)",
-          width: { xs: "80%", md: "60%" },
+          bgcolor: "rgba(255,255,255,0.2)", // Light divider color
+          width: { xs: "80%", md: "60%" }, // Responsive width
           mx: "auto",
           mb: 3,
         }}
       />
 
-      {/* Emails */}
+      {/* ===================== EMAIL CONTACTS ===================== */}
       <Stack
-        direction={{ xs: "column", sm: "row" }}
+        direction={{ xs: "column", sm: "row" }} // Column on mobile, row on desktop
         spacing={{ xs: 1, sm: 4 }}
         justifyContent="center"
         alignItems="center"
         mb={2}
         flexWrap="wrap"
       >
+        {/* Email 1 */}
         <Box display="flex" alignItems="center" gap={1}>
           <Email fontSize="small" sx={{ color: "rgba(255,255,255,0.9)" }} />
           <Typography sx={{ color: "rgba(255,255,255,0.9)" }}>
@@ -55,6 +65,7 @@ const Footer = () => {
           </Typography>
         </Box>
 
+        {/* Email 2 */}
         <Box display="flex" alignItems="center" gap={1}>
           <Email fontSize="small" sx={{ color: "rgba(255,255,255,0.9)" }} />
           <Typography sx={{ color: "rgba(255,255,255,0.9)" }}>
@@ -63,15 +74,16 @@ const Footer = () => {
         </Box>
       </Stack>
 
-      {/* Phone Numbers */}
+      {/* ===================== PHONE CONTACTS ===================== */}
       <Stack
-        direction={{ xs: "column", sm: "row" }}
+        direction={{ xs: "column", sm: "row" }} // Responsive layout
         spacing={{ xs: 1, sm: 4 }}
         justifyContent="center"
         alignItems="center"
         mb={2}
         flexWrap="wrap"
       >
+        {/* Phone number 1 */}
         <Box display="flex" alignItems="center" gap={1}>
           <Phone fontSize="small" sx={{ color: "rgba(255,255,255,0.9)" }} />
           <Typography sx={{ color: "rgba(255,255,255,0.9)" }}>
@@ -79,6 +91,7 @@ const Footer = () => {
           </Typography>
         </Box>
 
+        {/* Phone number 2 */}
         <Box display="flex" alignItems="center" gap={1}>
           <Phone fontSize="small" sx={{ color: "rgba(255,255,255,0.9)" }} />
           <Typography sx={{ color: "rgba(255,255,255,0.9)" }}>
@@ -87,7 +100,7 @@ const Footer = () => {
         </Box>
       </Stack>
 
-      {/* Copyright */}
+      {/* ===================== COPYRIGHT ===================== */}
       <Typography
         variant="body2"
         sx={{
