@@ -248,7 +248,7 @@ export default function AboutUsPage() {
     </Stack>
   </Box>
   <Box sx={{ flex: 1, position: "relative", minHeight: 400 }}>
-    <Image src="/assets/mission.png" alt="Mission" fill style={{ objectFit: "cover", borderRadius: 4 }} />
+    <Image src="/assets/mission.jpeg" alt="Mission" fill style={{ objectFit: "cover", borderRadius: 4 }} />
   </Box>
 </Card>
 
@@ -278,7 +278,7 @@ export default function AboutUsPage() {
     </Stack>
   </Box>
   <Box sx={{ flex: 1, position: "relative", minHeight: 400 }}>
-    <Image src="/assets/vision.png" alt="Vision" fill style={{ objectFit: "cover", borderRadius: 4 }} />
+    <Image src="/assets/vision.jpeg" alt="Vision" fill style={{ objectFit: "cover", borderRadius: 4 }} />
   </Box>
 </Card>
 

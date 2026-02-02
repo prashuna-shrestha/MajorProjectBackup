@@ -4,6 +4,7 @@
 // 1. React & Core Imports
 //===================================================
 import React, { useEffect, useState, useRef } from "react";
+import { logout } from "@/store/authSlice";
 
 //===================================================
 // 2. Material UI Components
@@ -15,7 +16,6 @@ import {
   IconButton,
   Box,
   Button,
-  Divider,
   Drawer,
   List,
   ListItem,
@@ -24,6 +24,8 @@ import {
   InputAdornment,
   Paper,
   Avatar,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 
 // Utility for color opacity
@@ -70,45 +72,47 @@ interface StockSuggestion {
 // 6. Header Component
 //===================================================
 export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
-
-  //===================================================
-  // 6.1 Redux & Router Setup
-  //===================================================
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // Theme state
   const mode = useSelector((state: RootState) => state.theme.mode);
   const isLight = mode === "light";
 
-  // Authentication state
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated
   );
 
-  // Logged-in user data
   const user = useSelector((state: RootState) => state.auth.user);
 
-  //===================================================
-  // 6.2 UI State & Handlers
-  //===================================================
   const handleThemeChange = () => dispatch(toggleMode());
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const toggleDrawer = () => setMobileOpen(!mobileOpen);
 
-  //===================================================
-  // 6.3 Styling Constants
-  //===================================================
+  // User dropdown state
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const isUserMenuOpen = Boolean(anchorEl);
+
+  const handleUserMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    handleUserMenuClose();
+    router.push("/");
+  };
+
   const headerGradient = isLight
     ? "linear-gradient(90deg, #9b59b6 0%, #6e4adb 100%)"
     : "linear-gradient(90deg, #332a6d 0%, #1d1649 100%)";
 
   const navHoverColor = "#4b0082";
 
-  //===================================================
-  // 6.4 Navigation Links
-  //===================================================
   const navLinks = [
     { label: "Home", href: "/" },
     { label: "News", href: "/news" },
@@ -117,31 +121,21 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
     { label: "Analysis", href: "/analysis" },
   ];
 
-  //===================================================
-  // 6.5 Backend Configuration
-  //===================================================
   const BACKEND_URL = "http://localhost:8000";
 
-  //===================================================
-  // 6.6 Search State
-  //===================================================
+  // Search state
   const [symbolInput, setSymbolInput] = useState("");
   const [suggestions, setSuggestions] = useState<StockSuggestion[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  //===================================================
-  // 6.7 Search Suggestions (Debounced)
-  //===================================================
   useEffect(() => {
-    // Stop search if input empty or user not logged in
     if (!symbolInput || !isAuthenticated) {
       setSuggestions([]);
       setIsDropdownOpen(false);
       return;
     }
 
-    // Delay API call for smoother UX
     const timeout = setTimeout(() => {
       fetch(`${BACKEND_URL}/api/search-suggestions?q=${symbolInput}`)
         .then((res) => res.json())
@@ -155,9 +149,6 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
     return () => clearTimeout(timeout);
   }, [symbolInput, isAuthenticated]);
 
-  //===================================================
-  // 6.8 Close Search Dropdown on Outside Click
-  //===================================================
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -167,24 +158,17 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
         setIsDropdownOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () =>
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  //===================================================
-  // 6.9 Search Handler
-  //===================================================
   const handleSearch = (symbol: string) => {
     if (!symbol) return;
-
-    // Update input and close dropdown
     setSymbolInput(symbol);
     setSuggestions([]);
     setIsDropdownOpen(false);
 
-    // Redirect unauthenticated users to login
     if (!isAuthenticated) {
       dispatch(setRedirectPath(`/analysis?symbol=${symbol}`));
       onLoginClick?.();
@@ -194,9 +178,6 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
     router.push(`/analysis?symbol=${symbol}`);
   };
 
-  //===================================================
-  // 6.10 Dropdown Icon Click Handler
-  //===================================================
   const handleDropdownClick = () => {
     if (!isAuthenticated) {
       onLoginClick?.();
@@ -216,9 +197,6 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
       });
   };
 
-  //===================================================
-  // 6.11 Navigation Click Handler
-  //===================================================
   const handleNavClick = (href: string) => {
     if (!isAuthenticated && href !== "/") {
       dispatch(setRedirectPath(href));
@@ -228,9 +206,7 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
     router.push(href);
   };
 
-  //===================================================
-  // 7. JSX (ONLY THE PART YOU PROVIDED)
-  //===================================================
+  //======================= JSX =======================
   return (
     <AppBar
       position="static"
@@ -256,8 +232,6 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
             style={{ cursor: "pointer" }}
             onClick={() => handleNavClick("/")}
           />
-
-          {/* Mobile Menu Button */}
           <IconButton
             color="inherit"
             sx={{ display: { xs: "flex", md: "none" } }}
@@ -265,8 +239,6 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
           >
             <MenuIcon />
           </IconButton>
-
-          {/* Desktop Navigation */}
           <Box
             display={{ xs: "none", md: "flex" }}
             alignItems="center"
@@ -291,233 +263,300 @@ export default function Header({ onLoginClick, onSignupClick }: HeaderProps) {
           </Box>
         </Box>
 
-{/* ===================== CENTER SEARCH SECTION ===================== */}
-<Box
-  sx={{ width: { xs: "100%", md: "40%" }, position: "relative" }}
-  ref={searchRef} // Reference used to detect clicks outside the search area
->
+        {/* Center Search Section */}
+        <Box
+          sx={{ width: { xs: "100%", md: "40%" }, position: "relative" }}
+          ref={searchRef}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              bgcolor: isLight ? "#fff" : alpha("#fff", 0.15),
+              borderRadius: "8px",
+              pl: 1.5,
+              transition: "box-shadow 0.3s",
+              "&:focus-within": {
+                boxShadow: "0 0 0 2px rgba(255,255,255,0.5)",
+              },
+              cursor: !isAuthenticated ? "pointer" : "text",
+            }}
+            onClick={() => !isAuthenticated && onLoginClick?.()}
+          >
+            <TextField
+              fullWidth
+              variant="standard"
+              placeholder="Search stock or company"
+              value={symbolInput}
+              disabled={!isAuthenticated}
+              onChange={(e) => setSymbolInput(e.target.value.toUpperCase())}
+              onKeyDown={(e) =>
+                e.key === "Enter" && handleSearch(symbolInput)
+              }
+              sx={{ input: { color: isLight ? "black" : "white" } }}
+              InputProps={{
+                disableUnderline: true,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: isLight ? "#666" : "#ccc" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDropdownClick();
+              }}
+              sx={{ color: isLight ? "#666" : "#ccc" }}
+            >
+              <ArrowDropDownIcon />
+            </IconButton>
+          </Box>
 
-  {/* Search input container */}
+          {isDropdownOpen && suggestions.length > 0 && (
+            <Paper
+              elevation={8}
+              sx={{
+                position: "absolute",
+                width: "100%",
+                top: "110%",
+                left: 0,
+                zIndex: 2000,
+                maxHeight: 350,
+                overflowY: "auto",
+                borderRadius: 2,
+                bgcolor: isLight ? "white" : "#1e1e1e",
+                border: isLight ? "1px solid #eee" : "1px solid #333",
+              }}
+            >
+              {suggestions.map((s) => (
+                <Box
+                  key={s.symbol}
+                  px={2}
+                  py={1.5}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    cursor: "pointer",
+                    borderBottom: isLight
+                      ? "1px solid #f0f0f0"
+                      : "1px solid #2d2d2d",
+                    "&:hover": {
+                      bgcolor: isLight
+                        ? alpha("#6e4adb", 0.08)
+                        : alpha("#fff", 0.05),
+                    },
+                    "&:last-child": { borderBottom: "none" },
+                  }}
+                  onClick={() => handleSearch(s.symbol)}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography
+                      fontWeight={700}
+                      color={isLight ? "primary.main" : "#bb86fc"}
+                    >
+                      {s.symbol}
+                    </Typography>
+                    <Typography fontSize={12} color="text.secondary" noWrap>
+                      {s.category}
+                    </Typography>
+                  </Box>
+                  <Typography fontSize={13} color="text.secondary" noWrap>
+                    {s.company_name}
+                  </Typography>
+                </Box>
+              ))}
+            </Paper>
+          )}
+        </Box>
+
+        {/* Right Section (Theme + Auth) */}
+        <Box display="flex" alignItems="center" gap={1.5}>
+          <IconButton color="inherit" onClick={handleThemeChange}>
+            {isLight ? <DarkMode /> : <LightMode />}
+          </IconButton>
+{!isAuthenticated ? (
+  <Box display="flex" gap={1}>
+    <Button
+      variant="outlined"
+      color="inherit"
+      onClick={onLoginClick}
+      sx={{ borderRadius: "20px", textTransform: "none" }}
+    >
+      Login
+    </Button>
+    <Button
+      variant="contained"
+      sx={{
+        borderRadius: "20px",
+        bgcolor: "white",
+        color: "#6e4adb",
+        textTransform: "none",
+        "&:hover": { bgcolor: "#f0f0f0" },
+      }}
+      onClick={onSignupClick}
+    >
+      Sign Up
+    </Button>
+  </Box>
+) : (
+<Box sx={{ position: "relative", display: "flex", alignItems: "center", gap: 1 }}>
+  {/* User Card */}
   <Box
     sx={{
       display: "flex",
       alignItems: "center",
-      bgcolor: isLight ? "#fff" : alpha("#fff", 0.15), // Background based on theme
-      borderRadius: "8px",
-      pl: 1.5, // Left padding
-      transition: "box-shadow 0.3s",
-      "&:focus-within": {
-        boxShadow: "0 0 0 2px rgba(255,255,255,0.5)", // Highlight when focused
-      },
-      cursor: !isAuthenticated ? "pointer" : "text", // Pointer if login required
+      gap: 1,
+      p: 0.5,
+      borderRadius: 2,
+      bgcolor: isLight ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.1)",
+      cursor: "pointer",
     }}
-    // If user is not authenticated, clicking opens login modal
-    onClick={() => !isAuthenticated && onLoginClick?.()}
+    onClick={(e) => handleUserMenuOpen(e)}
   >
+    <Avatar sx={{ width: 35, height: 35, bgcolor: alpha("#fff", 0.2) }}>
+      <PersonIcon />
+    </Avatar>
 
-    {/* Search text field */}
-    <TextField
-      fullWidth
-      variant="standard"
-      placeholder="Search stock or company"
-      value={symbolInput}
-      disabled={!isAuthenticated} // Disable typing if user not logged in
-      onChange={(e) =>
-        setSymbolInput(e.target.value.toUpperCase())
-      } // Convert input to uppercase
-      onKeyDown={(e) =>
-        e.key === "Enter" && handleSearch(symbolInput)
-      } // Search on Enter key
-      sx={{ input: { color: isLight ? "black" : "white" } }}
-      InputProps={{
-        disableUnderline: true, // Remove default underline
-        startAdornment: (
-          <InputAdornment position="start">
-            {/* Search icon inside input */}
-            <SearchIcon sx={{ color: isLight ? "#666" : "#ccc" }} />
-          </InputAdornment>
-        ),
-      }}
-    />
-
-    {/* Dropdown arrow button to load all stocks */}
-    <IconButton
-      size="small"
-      onClick={(e) => {
-        e.stopPropagation(); // Prevent parent click event
-        handleDropdownClick(); // Fetch and show all stocks
-      }}
-      sx={{ color: isLight ? "#666" : "#ccc" }}
+    <Typography
+      variant="body2"
+      sx={{ fontWeight: 500, display: { xs: "none", sm: "block" } }}
     >
-      <ArrowDropDownIcon />
-    </IconButton>
+      {user?.fullName}
+    </Typography>
+
+    <ArrowDropDownIcon />
   </Box>
 
-  {/* ===================== SEARCH SUGGESTIONS DROPDOWN ===================== */}
-  {isDropdownOpen && suggestions.length > 0 && (
-    <Paper
-      elevation={8}
-      sx={{
-        position: "absolute",
-        width: "100%",
-        top: "110%", // Position below search bar
-        left: 0,
-        zIndex: 2000,
-        maxHeight: 350,
-        overflowY: "auto", // Scroll if list is long
-        borderRadius: 2,
-        bgcolor: isLight ? "white" : "#1e1e1e",
-        border: isLight ? "1px solid #eee" : "1px solid #333",
-      }}
-    >
-      {suggestions.map((s) => (
-        <Box
-          key={s.symbol} // Unique key for each suggestion
-          px={2}
-          py={1.5}
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            cursor: "pointer",
-            borderBottom: isLight
-              ? "1px solid #f0f0f0"
-              : "1px solid #2d2d2d",
-            "&:hover": {
-              bgcolor: isLight
-                ? alpha("#6e4adb", 0.08)
-                : alpha("#fff", 0.05),
-            },
-            "&:last-child": { borderBottom: "none" },
-          }}
-          onClick={() => handleSearch(s.symbol)} // Navigate to analysis page
-        >
-          {/* Top row: stock symbol and category */}
+  {/* Logout Menu */}
+  <Menu
+    anchorEl={anchorEl}
+    open={isUserMenuOpen}
+    onClose={handleUserMenuClose}
+    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+    transformOrigin={{ vertical: "top", horizontal: "right" }}
+    disableScrollLock
+    PaperProps={{
+      sx: {
+        borderRadius: 0,
+        boxShadow: "none",
+        bgcolor: "transparent",
+        mt: 1.5, // vertical spacing from user card
+      },
+    }}
+  >
+    <MenuItem
+  onClick={handleLogout}
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
+    px: 2,
+    py: 1.2,
+    color: "white",
+    borderRadius: 2,
+    backgroundColor: "#b169f5 !important", // force purple
+    minWidth: 160,
+    "&:hover": {
+      backgroundColor: "#8e4df5 !important", // force hover purple
+    },
+  }}
+>
+  {/* Logout Icon */}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    height="20"
+    viewBox="0 0 24 24"
+    width="20"
+    fill="white"
+  >
+    <path d="M0 0h24v24H0z" fill="none" />
+    <path d="M16 13v-2H7V8l-5 4 5 4v-3h9zM20 3h-8v2h8v14h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+  </svg>
+
+  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+    Logout
+  </Typography>
+</MenuItem>
+
+  </Menu>
+</Box>
+
+
+
+
+
+
+)}
+
+
+
+        </Box>
+
+        {/* Mobile Drawer */}
+        <Drawer anchor="left" open={mobileOpen} onClose={toggleDrawer}>
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              width: 280,
+              background: headerGradient,
+              height: "100%",
+              color: "white",
+              p: 3,
             }}
           >
-            <Typography
-              fontWeight={700}
-              color={isLight ? "primary.main" : "#bb86fc"}
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={4}
             >
-              {s.symbol}
-            </Typography>
+              <Typography variant="h6" fontWeight={700}>
+                FinSight
+              </Typography>
+              <IconButton color="inherit" onClick={toggleDrawer}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
 
-            <Typography fontSize={12} color="text.secondary" noWrap>
-              {s.category}
-            </Typography>
+            <List>
+              {navLinks.map((item) => (
+                <ListItem
+                  key={item.label}
+                  disablePadding
+                  sx={{
+                    mb: 2,
+                    cursor: "pointer",
+                    userSelect: "none",
+                    "&:hover": {
+                      backgroundColor: "transparent",
+                      color: "#4b0082",
+                    },
+                  }}
+                  onClick={() => {
+                    handleNavClick(item.href);
+                    toggleDrawer();
+                  }}
+                >
+                  <ListItemText
+                    primary={item.label}
+                    primaryTypographyProps={{
+                      fontSize: "1.1rem",
+                      fontWeight: 500,
+                    }}
+                  />
+                </ListItem>
+              ))}
+            </List>
           </Box>
-
-          {/* Bottom row: company name */}
-          <Typography fontSize={13} color="text.secondary" noWrap>
-            {s.company_name}
-          </Typography>
-        </Box>
-      ))}
-    </Paper>
-  )}
-</Box>
-
-{/* ===================== RIGHT SECTION (THEME + AUTH) ===================== */}
-<Box display="flex" alignItems="center" gap={1.5}>
-
-  {/* Dark / Light mode toggle */}
-  <IconButton color="inherit" onClick={handleThemeChange}>
-    {isLight ? <DarkMode /> : <LightMode />}
-  </IconButton>
-
-  {/* Show Login / Signup if not authenticated */}
-  {!isAuthenticated ? (
-    <Box display="flex" gap={1}>
-      <Button
-        variant="outlined"
-        color="inherit"
-        onClick={onLoginClick}
-        sx={{ borderRadius: "20px", textTransform: "none" }}
-      >
-        Login
-      </Button>
-
-      <Button
-        variant="contained"
-        sx={{
-          borderRadius: "20px",
-          bgcolor: "white",
-          color: "#6e4adb",
-          textTransform: "none",
-          "&:hover": { bgcolor: "#f0f0f0" },
-        }}
-        onClick={onSignupClick}
-      >
-        Sign Up
-      </Button>
-    </Box>
-  ) : (
-    // Show user avatar and name when logged in
-    <Box display="flex" alignItems="center" gap={1} sx={{ cursor: "pointer" }}>
-      <Avatar sx={{ width: 35, height: 35, bgcolor: alpha("#fff", 0.2) }}>
-        <PersonIcon />
-      </Avatar>
-
-      <Typography
-        variant="body2"
-        sx={{ display: { xs: "none", sm: "block" } }}
-      >
-        {user?.fullName}
-      </Typography>
-    </Box>
-  )}
-</Box>
-
-{/* ===================== MOBILE DRAWER ===================== */}
-<Drawer anchor="left" open={mobileOpen} onClose={toggleDrawer}>
-  <Box
-    sx={{
-      width: 280,
-      background: headerGradient,
-      height: "100%",
-      color: "white",
-      p: 3,
-    }}
-  >
-    {/* Drawer header */}
-    <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-      <Typography variant="h6" fontWeight={700}>
-        FinSight
-      </Typography>
-      <IconButton color="inherit" onClick={toggleDrawer}>
-        <CloseIcon />
-      </IconButton>
-    </Box>
-
-    {/* Mobile navigation links */}
-    <List>
-      {navLinks.map((item) => (
-        <ListItem
-          key={item.label}
-          disablePadding
-          sx={{ mb: 2 }}
-          onClick={() => {
-            handleNavClick(item.href); // Navigate
-            toggleDrawer(); // Close drawer
-          }}
-        >
-          <ListItemText
-            primary={item.label}
-            primaryTypographyProps={{
-              fontSize: "1.1rem",
-              fontWeight: 500,
-            }}
-          />
-        </ListItem>
-      ))}
-    </List>
-  </Box>
-</Drawer>
-
+        </Drawer>
       </Toolbar>
     </AppBar>
   );

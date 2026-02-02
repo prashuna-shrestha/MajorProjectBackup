@@ -19,7 +19,9 @@ import {
 
 // Material UI icons
 import CloseIcon from "@mui/icons-material/Close";
-
+import InputAdornment from "@mui/material/InputAdornment";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 //===================================================
 // 2. Component Props Interface
@@ -45,7 +47,9 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
 
   //===================================================
   // 3-2. Error State Management
@@ -261,32 +265,56 @@ export default function SignupForm({ closeModal, switchToLogin }: Props) {
         helperText={submitted ? emailError : ""}
       />
 
-      <TextField
-        fullWidth
-        label="Password"
-        type="password"
-        variant="outlined"
-        size="small"
-        margin="dense"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        error={submitted && !!passwordError}
-        helperText={submitted ? passwordError : ""}
-      />
+<TextField
+  fullWidth
+  label="Password"
+  type={showPassword ? "text" : "password"}
+  variant="outlined"
+  size="small"
+  margin="dense"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  error={submitted && !!passwordError}
+  helperText={submitted ? passwordError : ""}
+  InputProps={{
+    endAdornment: (
+      <InputAdornment position="end">
+        <IconButton
+          onClick={() => setShowPassword((prev) => !prev)}
+          edge="end"
+        >
+          {showPassword ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
+      </InputAdornment>
+    ),
+  }}
+/>
 
-      <TextField
-        fullWidth
-        label="Confirm Password"
-        type="password"
-        variant="outlined"
-        size="small"
-        margin="dense"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        error={submitted && !!confirmPasswordError}
-        helperText={submitted ? confirmPasswordError : ""}
-      />
 
+<TextField
+  fullWidth
+  label="Confirm Password"
+  type={showConfirmPassword ? "text" : "password"}
+  variant="outlined"
+  size="small"
+  margin="dense"
+  value={confirmPassword}
+  onChange={(e) => setConfirmPassword(e.target.value)}
+  error={submitted && !!confirmPasswordError}
+  helperText={submitted ? confirmPasswordError : ""}
+  InputProps={{
+    endAdornment: (
+      <InputAdornment position="end">
+        <IconButton
+          onClick={() => setShowConfirmPassword((prev) => !prev)}
+          edge="end"
+        >
+          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
+      </InputAdornment>
+    ),
+  }}
+/>
 
       {/* ==============================================
           4-5. Server Error Message
