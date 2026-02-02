@@ -315,7 +315,7 @@ const TechnicalStatus: React.FC<TechnicalStatusProps> = ({
                 };
 
                 [labelX, labelY] = positions[value];
-
+                  //confidence level color differentiation
                 return (
                   <g key={value}>
                     <line

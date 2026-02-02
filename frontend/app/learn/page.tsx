@@ -1,15 +1,18 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { SvgIconProps } from "@mui/material/SvgIcon";
 import {
   Box,
   Container,
   Typography,
   Grid,
-  Card,
   Stack,
   useTheme,
   Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  IconButton,
 } from "@mui/material";
 import { motion, Variants } from "framer-motion";
 import {
@@ -21,6 +24,7 @@ import {
   Speed,
   BarChart,
   WarningAmber,
+  Add,
 } from "@mui/icons-material";
 
 const fadeUp: Variants = {
@@ -45,6 +49,7 @@ const SectionCard = ({
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <motion.div
@@ -53,76 +58,151 @@ const SectionCard = ({
       viewport={{ once: true }}
       variants={fadeUp}
       custom={index}
-      whileHover={{ scale: 1.03 }}
       style={{ height: "100%", width: "100%" }}
     >
-      <Card
+      <Accordion
+        expanded={expanded}
+        onChange={() => {}} // Disable default accordion behavior
+        square
         sx={{
-          p: 5,
           borderRadius: 4,
-          height: "100%",
-          bgcolor: isDark ? "#1e1e2f" : "#ffffff",
-          boxShadow: isDark
-            ? "0 8px 24px rgba(0,0,0,0.25)"
-            : "0 6px 18px rgba(103,58,183,0.15)",
-          border: isDark ? "1px solid #2e2e3f" : "1px solid rgba(103,58,183,0.1)",
-          cursor: "pointer",
-          transition: "0.4s",
-          "&:hover": {
+          bgcolor: "transparent",
+          boxShadow: "none",
+          "&:before": { display: "none" },
+          "&.Mui-expanded": {
+            borderRadius: 4,
             boxShadow: isDark
-              ? "0 15px 40px rgba(106,27,154,0.5)"
+              ? "0 15px 40px rgba(106,27,154,0.4)"
               : "0 12px 30px rgba(103,58,183,0.25)",
-            transform: "scale(1.05)",
           },
         }}
       >
-        <Stack spacing={3} alignItems="center">
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: "50%",
-              bgcolor: isDark ? "#6a1b9a" : "#7b5cf5",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: isDark
-                ? "0 6px 20px rgba(0,0,0,0.25)"
-                : "0 4px 12px rgba(103,58,183,0.15)",
-              transition: "0.3s",
-              "&:hover": {
-                transform: "scale(1.2)",
-                boxShadow: "0 10px 28px rgba(0,0,0,0.3)",
-              },
-            }}
-          >
-            {React.isValidElement(icon)
-              ? React.cloneElement(icon as React.ReactElement<any>, {
-                  fontSize: "large",
-                  htmlColor: "#fff",
-                })
-              : icon}
-          </Box>
+        <AccordionSummary
+  expandIcon={null}
+  sx={{
+  minHeight: 120,
+  px: 3,
+  py: 3,
+  borderRadius: expanded ? "16px 16px 0 0" : 4,
+  bgcolor: isDark ? "#1e1e2f" : "#ffffff",
+  border: isDark
+    ? "1px solid #2e2e3f"
+    : "1px solid rgba(103,58,183,0.1)",
+  borderBottom: expanded ? "none" : undefined,
+  cursor: "default",
+  "& .MuiAccordionSummary-content": {
+    m: 0,
+    alignItems: "center",
+  },
+}}
 
-          <Typography
-            variant="h6"
-            fontWeight={800}
-            color={isDark ? "grey.100" : "text.primary"}
-            textAlign="center"
-          >
-            {title}
-          </Typography>
+>
 
-          <Typography
-            color={isDark ? "grey.400" : "text.secondary"}
-            lineHeight={1.9}
-            textAlign="justify"
-            sx={{ whiteSpace: "pre-line" }}
-          >
-            {content}
-          </Typography>
-        </Stack>
-      </Card>
+          <Stack direction="row" spacing={3} sx={{ width: "100%", alignItems: "center" }}>
+            {/* Icon + Title - Left Side */}
+            <Stack spacing={2} alignItems="center" sx={{ flex: 1 }}>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "50%",
+                  bgcolor: isDark ? "#6a1b9a" : "#7b5cf5",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: isDark
+                    ? "0 6px 20px rgba(0,0,0,0.25)"
+                    : "0 4px 12px rgba(103,58,183,0.15)",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "scale(1.1)",
+                    boxShadow: isDark
+                      ? "0 10px 28px rgba(106,27,154,0.4)"
+                      : "0 8px 20px rgba(103,58,183,0.25)",
+                  },
+                }}
+              >
+                {React.isValidElement(icon)
+                  ? React.cloneElement(icon as React.ReactElement<any>, {
+                      fontSize: "large",
+                      htmlColor: "#fff",
+                    })
+                  : icon}
+              </Box>
+              <Typography
+                variant="h6"
+                fontWeight={800}
+                color={isDark ? "grey.100" : "text.primary"}
+                textAlign="center"
+              >
+                {title}
+              </Typography>
+            </Stack>
+
+            {/* Custom Plus Button - Right Side */}
+            <motion.div animate={{ rotate: expanded ? 45 : 0 }} transition={{ duration: 0.3 }}>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent accordion default click
+                  setExpanded(!expanded);
+                }}
+                sx={{
+                  width: 44,
+                  height: 44,
+                  bgcolor: isDark ? "#6a1b9a" : "#7b5cf5",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  boxShadow: isDark
+                    ? "0 6px 20px rgba(106,27,154,0.4)"
+                    : "0 4px 12px rgba(103,58,183,0.2)",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    bgcolor: isDark ? "#8b3faf" : "#9333ea",
+                    transform: "scale(1.1)",
+                    boxShadow: isDark
+                      ? "0 12px 30px rgba(106,27,154,0.6)"
+                      : "0 8px 20px rgba(103,58,183,0.3)",
+                  },
+                }}
+              >
+                <Add />
+              </IconButton>
+            </motion.div>
+          </Stack>
+        </AccordionSummary>
+
+<AccordionDetails
+  sx={{
+    px: 3,
+    pt: 2,        // ⬅ reduced top gap
+    pb: 3,        // ⬅ reduced bottom gap
+    bgcolor: isDark ? "#1e1e2f" : "#ffffff",
+    borderTop: isDark
+      ? "1px solid #2e2e3f"
+      : "1px solid rgba(103,58,183,0.1)",
+    borderRadius: "0 0 16px 16px",
+  }}
+>
+
+ 
+
+  <Typography
+    color={isDark ? "grey.200" : "text.primary"}
+    lineHeight={1.9}
+    textAlign="justify"
+    sx={{
+      whiteSpace: "pre-line",
+      fontSize: { xs: "1rem", md: "1.15rem" },
+    // ⬆ increased font size
+      fontWeight: 500,        // ⬆ more bold
+    }}
+  >
+    {content}
+  </Typography>
+</AccordionDetails>
+
+
+      </Accordion>
     </motion.div>
   );
 };
@@ -178,14 +258,12 @@ export default function LearnPage() {
 
       {/* CONTENT SECTION */}
       <Box
-  sx={{
-    py: 10,
-    width: "100%",
-    background: isDark
-      ? "#151528" // dark mode background
-      : "#f1f9f3", // light grey for light mode
-  }}
->
+        sx={{
+          py: 10,
+          width: "100%",
+          background: isDark ? "#151528" : "#f1f9f3",
+        }}
+      >
         <Container maxWidth="lg">
           <Grid container spacing={5}>
             {[
@@ -215,8 +293,7 @@ export default function LearnPage() {
                   "•EMA (Exponential Moving Average)– shows the trend direction by giving more weight to recent prices, helping identify momentum.\n" +
                   "•RSI (Relative Strength Index) – measures overbought or oversold conditions, indicating potential trend reversals.\n" +
                   "•Bollinger Bands– display price volatility and potential support/resistance levels.\n" +
-                  "•Volume – tracks the number of shares traded, confirming the strength of price movements." ,
-                  
+                  "•Volume – tracks the number of shares traded, confirming the strength of price movements.",
               },
               {
                 icon: <BarChart />,
@@ -254,14 +331,15 @@ export default function LearnPage() {
             ))}
           </Grid>
 
-          {/* NEW SECTION: COMMON STOCK PATTERNS */}
-          <Box sx={{ py: 10, width: "100%" }}>
+          {/* COMMON STOCK PATTERNS SECTION */}
+          <Box sx={{ py: 10 }}>
             <Typography
               variant="h4"
               fontWeight={800}
-              mb={4}
+              mb={6}
               color={isDark ? "grey.100" : "text.primary"}
               textAlign="center"
+              sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}
             >
               Common Stock Patterns & Signals
             </Typography>
@@ -272,7 +350,7 @@ export default function LearnPage() {
                   title: "Head & Shoulders",
                   icon: <ShowChart />,
                   content:
-                    "The Head and Shoulders pattern in the stock market is a key technical analysis formation signaling a potential trend reversal, typically from bullish to bearish, featuring three peaks: a left shoulder, a higher head, and a lower right shoulder, connected by a neckline with a break below it confirming a downward price move. An Inverse Head and Shoulders signals a bullish reversal from a downtrend. It helps traders identify trend changes and set price targets and stop-loss levels. ",
+                    "The Head and Shoulders pattern in the stock market is a key technical analysis formation signaling a potential trend reversal, typically from bullish to bearish, featuring three peaks: a left shoulder, a higher head, and a lower right shoulder, connected by a neckline with a break below it confirming a downward price move. An Inverse Head and Shoulders signals a bullish reversal from a downtrend. It helps traders identify trend changes and set price targets and stop-loss levels.",
                 },
                 {
                   title: "Double Top / Double Bottom",
@@ -284,7 +362,7 @@ export default function LearnPage() {
                   title: "Support & Resistance",
                   icon: <BarChart />,
                   content:
-                    "Support and resistance are key technical analysis levels where buying (support) or selling (resistance) pressure often stops or reverses a stock's price, acting as a price floor (support) and ceiling (resistance) based on supply/demand psychology, helping traders find entry/exit points, with strong levels being hit multiple times before breaking, signaling new trends. ",
+                    "Support and resistance are key technical analysis levels where buying (support) or selling (resistance) pressure often stops or reverses a stock's price, acting as a price floor (support) and ceiling (resistance) based on supply/demand psychology, helping traders find entry/exit points, with strong levels being hit multiple times before breaking, signaling new trends.",
                 },
                 {
                   title: "Breakouts",
@@ -298,14 +376,12 @@ export default function LearnPage() {
                     icon={item.icon}
                     title={item.title}
                     content={item.content}
-                    index={index}
+                    index={index + 8}
                   />
                 </Grid>
               ))}
             </Grid>
           </Box>
-
-          
 
           <Divider sx={{ my: 8, borderColor: isDark ? "#2e2e3f" : "#d1d5db" }} />
 
@@ -315,6 +391,7 @@ export default function LearnPage() {
             textAlign="center"
             maxWidth={900}
             mx="auto"
+            sx={{ fontSize: "1.1rem" }}
           >
             This learning page provides a beginner-friendly guide to understand stock market fundamentals, charts, indicators, and AI-assisted trend predictions.
           </Typography>

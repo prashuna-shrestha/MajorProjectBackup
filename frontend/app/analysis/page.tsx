@@ -10,7 +10,6 @@ import {
   BarChart3,
   Zap,
   Activity,
-  Volume2,
   LineChart,
 } from "lucide-react";
 import { RootState } from "@/store";
@@ -38,24 +37,22 @@ const AnalysisPage: React.FC = () => {
   //===========================
   // 2. Local State
   //===========================
-  const [data, setData] = useState<StockData[]>([]);                // Stock price data
-  const [selectedTrends, setSelectedTrends] = useState<string[]>(["EMA12", "EMA26"]); // Active trends
-  const [timeframe, setTimeframe] = useState<string>("5Y");         // Selected timeframe
-  const [loading, setLoading] = useState<boolean>(true);            // Loading state
-  const [mounted, setMounted] = useState<boolean>(false);           // To prevent SSR issues
+  const [data, setData] = useState<StockData[]>([]);
+  const [selectedTrends, setSelectedTrends] = useState<string[]>(["EMA12", "EMA26"]);
+
+
+  const [timeframe, setTimeframe] = useState<string>("5Y"); // default 1 month
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [mounted, setMounted] = useState<boolean>(false);
 
   //===========================
   // 3. Fetch Data Effects
   //===========================
   useEffect(() => {
-    setMounted(true);                       // Component mounted
-    fetchStockData(symbolParam, timeframe); // Fetch stock data
+    setMounted(true);
+    fetchStockData(symbolParam, timeframe);
   }, [symbolParam, timeframe]);
-
-  // Reset timeframe when symbol changes
-  useEffect(() => {
-    setTimeframe("5Y");
-  }, [symbolParam]);
 
   //===========================
   // 4. Fetch Stock Data
@@ -65,11 +62,11 @@ const AnalysisPage: React.FC = () => {
       setLoading(true);
       const res = await fetch(`${BACKEND_URL}/api/stocks?symbol=${symbol}&timeframe=${tf}`);
       if (!res.ok) {
-        setData([]); // Clear data on error
+        setData([]);
         return;
       }
       const json = await res.json();
-      setData(Array.isArray(json.records) ? json.records : []); // Ensure array
+      setData(Array.isArray(json.records) ? json.records : []);
     } catch (err) {
       console.error("Error fetching:", err);
       setData([]);
@@ -78,14 +75,16 @@ const AnalysisPage: React.FC = () => {
     }
   };
 
+
   //===========================
   // 5. Handlers
   //===========================
-  const handleFilterChange = (tf: string) => setTimeframe(tf); // Change timeframe
+  const handleFilterChange = (tf: string) => setTimeframe(tf);
+
   const handleToggle = (trend: string) =>
     setSelectedTrends((prev) =>
       prev.includes(trend) ? prev.filter((t) => t !== trend) : [...prev, trend]
-    ); // Toggle technical trend
+    );
 
   //===========================
   // 6. Icons for trends
@@ -100,14 +99,11 @@ const AnalysisPage: React.FC = () => {
         return <BarChart3 size={16} />;
       case "RSI":
         return <Activity size={16} />;
-      case "VOLUME":
-        return <Volume2 size={16} />;
       default:
         return <BarChart3 size={16} />;
     }
   };
 
-  // Timeframe display labels
   const timeframeLabels: Record<string, string> = {
     "1D": "1Day",
     "1W": "1Week",
@@ -135,7 +131,42 @@ const AnalysisPage: React.FC = () => {
     hoverBackground: isDark ? "#4b5563" : "#f1f5f9",
   };
 
-  // Prevent SSR mismatch
+  // ✅ Button colors MATCH chart colors (EMA12 amber, EMA26 sky, BB purple, RSI yellow)
+  const indicatorStyles: Record<
+    string,
+    {
+      activeBg: string;   // gradient for active
+      inactiveBg: string; // subtle background for inactive
+      border: string;
+      text: string;
+    }
+  > = {
+    EMA12: {
+      activeBg: "linear-gradient(135deg, #d97706, #f59e0b)", // amber
+      inactiveBg: isDark ? "rgba(245,158,11,0.15)" : "rgba(245,158,11,0.10)",
+      border: isDark ? "rgba(245,158,11,0.45)" : "rgba(245,158,11,0.35)",
+      text: isDark ? "#fef3c7" : "#92400e",
+    },
+    EMA26: {
+      activeBg: "linear-gradient(135deg, #0284c7, #38bdf8)", // sky-blue
+      inactiveBg: isDark ? "rgba(56,189,248,0.14)" : "rgba(56,189,248,0.10)",
+      border: isDark ? "rgba(56,189,248,0.45)" : "rgba(56,189,248,0.35)",
+      text: isDark ? "#e0f2fe" : "#075985",
+    },
+    BB: {
+      activeBg: "linear-gradient(135deg, #7c3aed, #a78bfa)", // purple
+      inactiveBg: isDark ? "rgba(167,139,250,0.14)" : "rgba(167,139,250,0.10)",
+      border: isDark ? "rgba(167,139,250,0.45)" : "rgba(167,139,250,0.35)",
+      text: isDark ? "#ede9fe" : "#5b21b6",
+    },
+    RSI: {
+      activeBg: "linear-gradient(135deg, #f59e0b, #fbbf24)", // yellow/amber
+      inactiveBg: isDark ? "rgba(251,191,36,0.14)" : "rgba(251,191,36,0.10)",
+      border: isDark ? "rgba(251,191,36,0.45)" : "rgba(251,191,36,0.35)",
+      text: isDark ? "#fef9c3" : "#854d0e",
+    },
+  };
+
   if (!mounted) return null;
 
   //===========================
@@ -152,7 +183,6 @@ const AnalysisPage: React.FC = () => {
         transition: "background-color 0.3s ease, color 0.3s ease",
       }}
     >
-      {/* Main content */}
       <main style={{ flex: 1, padding: "20px 40px" }}>
         {/*==================== HERO SECTION ====================*/}
         <div
@@ -173,7 +203,6 @@ const AnalysisPage: React.FC = () => {
             borderRadius: "16px",
           }}
         >
-          {/* Icon Circle */}
           <div
             style={{
               width: "60px",
@@ -192,7 +221,6 @@ const AnalysisPage: React.FC = () => {
             <TrendingUp size={28} color="#fff" />
           </div>
 
-          {/* Hero Title */}
           <h1
             style={{
               fontSize: "2rem",
@@ -206,7 +234,6 @@ const AnalysisPage: React.FC = () => {
             Stock Trend Prediction System
           </h1>
 
-          {/* Hero Description */}
           <p
             style={{
               fontSize: "1rem",
@@ -243,7 +270,6 @@ const AnalysisPage: React.FC = () => {
               border: `1px solid ${themeStyles.cardBorder}`,
             }}
           >
-            {/* Header */}
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
               <Zap size={18} color="#f59e0b" />
               <h3 style={{ fontSize: "16px", fontWeight: 600, margin: 0, color: themeStyles.textPrimary }}>
@@ -251,7 +277,6 @@ const AnalysisPage: React.FC = () => {
               </h3>
             </div>
 
-            {/* Timeframe Buttons */}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {Object.entries(timeframeLabels).map(([key, label]) => (
                 <button
@@ -282,7 +307,6 @@ const AnalysisPage: React.FC = () => {
             </div>
           </div>
 
-
           {/*==================== TECHNICAL INDICATORS CONTAINER ====================*/}
           <div
             style={{
@@ -294,47 +318,57 @@ const AnalysisPage: React.FC = () => {
               border: `1px solid ${themeStyles.cardBorder}`,
             }}
           >
-            {/* Header: Icon + Title */}
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
               <Activity size={18} color="#06b6d4" />
               <h3 style={{ fontSize: "16px", fontWeight: 600, margin: 0, color: themeStyles.textPrimary }}>
                 Technical Indicators
               </h3>
             </div>
-              {/* Buttons for each indicator */}
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              {["EMA12", "EMA26", "BB", "RSI", "VOLUME"].map((trend) => (
-                <button
-                  key={trend}
-                  onClick={() => handleToggle(trend)}     //Toggle indicator
-                  style={{
-                    padding: "10px 16px",
-                    borderRadius: "8px",
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    ...(selectedTrends.includes(trend)
-                      ? {
-                           // Active indicator style
-                          background: "linear-gradient(135deg, #0ea5e9, #06b6d4)",
-                          color: "#fff",
-                          border: "none",
-                        }
-                      : {
-                         // Inactive indicator style
-                          backgroundColor: themeStyles.buttonBackground,
-                          color: themeStyles.buttonText,
-                          border: `1px solid ${themeStyles.buttonBorder}`,
-                        }),
-                  }}
-                >
-                  {getTrendIcon(trend)}
-                  {trend}
-                </button>
-              ))}
+
+            {/* ✅ Colored buttons matching chart colors (VOLUME removed) */}
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              {["EMA12", "EMA26", "BB", "RSI"].map((trend) => {
+                const active = selectedTrends.includes(trend);
+                const s = indicatorStyles[trend];
+
+                return (
+                  <button
+                    key={trend}
+                    onClick={() => handleToggle(trend)}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: "10px",
+                      fontWeight: 700,
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      transition: "all 0.2s ease",
+                      userSelect: "none",
+
+                      ...(active
+                        ? {
+                            background: s.activeBg,
+                            color: "#fff",
+                            border: "none",
+                            boxShadow: isDark
+                              ? "0 10px 22px rgba(0,0,0,0.35)"
+                              : "0 10px 18px rgba(0,0,0,0.14)",
+                            transform: "translateY(-1px)",
+                          }
+                        : {
+                            backgroundColor: s.inactiveBg,
+                            color: s.text,
+                            border: `1px solid ${s.border}`,
+                          }),
+                    }}
+                  >
+                    {getTrendIcon(trend)}
+                    {trend}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -342,12 +376,10 @@ const AnalysisPage: React.FC = () => {
         {/*==================== MARKET TREND STATUS ====================*/}
         {data.length > 0 && (
           <div style={{ marginBottom: "20px", display: "flex", gap: "12px", alignItems: "center", paddingLeft: "10px" }}>
-            {/* Label */}
             <span style={{ fontSize: "14px", fontWeight: 600, color: themeStyles.textSecondary }}>
               Market Trend:
             </span>
 
-             {/* Trend Indicator Badge */}
             <span
               style={{
                 padding: "6px 16px",
@@ -381,7 +413,6 @@ const AnalysisPage: React.FC = () => {
 
         {/*==================== CHART + TECHNICAL STATUS ====================*/}
         <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          {/* STOCK CHART CONTAINER */}
           <div style={{ flex: "1 1 700px", minHeight: "600px" }}>
             <div
               style={{
@@ -393,8 +424,6 @@ const AnalysisPage: React.FC = () => {
                 minHeight: "550px",
               }}
             >
-
-                 {/* Chart Header */}
               <div
                 style={{
                   marginBottom: "15px",
@@ -407,10 +436,8 @@ const AnalysisPage: React.FC = () => {
                 </h3>
               </div>
 
-               {/* Chart or Loading Spinner */}
               <div style={{ minHeight: "450px" }}>
                 {loading ? (
-                   // Loading Spinner
                   <div
                     style={{
                       height: "100%",
@@ -436,29 +463,22 @@ const AnalysisPage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                   // Render chart component
                   <StockChart data={data} selectedTrends={selectedTrends} />
                 )}
               </div>
             </div>
           </div>
 
-          {/* TECHNICAL STATUS PANEL */}
           <div style={{ flex: 1, minWidth: "48%" }}>
             <TechnicalStatus symbol={symbolParam} />
           </div>
         </div>
       </main>
 
-      {/*==================== GLOBAL SPINNER ANIMATION ====================*/}
       <style jsx global>{`
         @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `}</style>
     </div>

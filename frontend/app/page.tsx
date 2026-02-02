@@ -13,6 +13,11 @@ import {
   TableRow,
   Paper,
   useMediaQuery,
+  TextField,
+  Grid,
+  MenuItem,
+  Divider,
+  Button,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -25,6 +30,226 @@ type Stock = {
   change_percent: number;
   last_7_days: number[];
 };
+
+
+/* ================= COMMISSION ================= */
+const getBrokerCommission = (amount: number) => {
+  if (amount <= 50000) return amount * 0.004;
+  if (amount <= 500000) return amount * 0.0037;
+  if (amount <= 2000000) return amount * 0.0034;
+  if (amount <= 10000000) return amount * 0.003;
+  return amount * 0.0027;
+};
+
+/* ================= SHARE CALCULATOR (CHUKUL STYLE) ================= */
+/* ================= SHARE CALCULATOR ================= */
+function ShareCalculator() {
+  const [mode, setMode] = useState<"buy" | "sell">("buy");
+  const [qty, setQty] = useState<number | "">("");
+  const [buyPrice, setBuyPrice] = useState<number | "">("");
+  const [sellPrice, setSellPrice] = useState<number | "">("");
+  const [investorType, setInvestorType] = useState<"Individual" | "Institutional">("Individual");
+  const [capitalTaxRate, setCapitalTaxRate] = useState<number>(7.5);
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const sebonRate = 0.00015;
+  const dpCharge = 25;
+
+  useEffect(() => {
+    setCapitalTaxRate(investorType === "Individual" ? 7.5 : 10);
+  }, [investorType]);
+
+  const taxRate = capitalTaxRate / 100;
+
+  // ---------------- CALCULATIONS ----------------
+  const totalBuy = qty && buyPrice ? qty * buyPrice : 0;
+  const buyCommission = totalBuy ? getBrokerCommission(totalBuy) : 0;
+  const buySebon = totalBuy ? totalBuy * sebonRate : 0;
+  const totalPayable = totalBuy + buyCommission + buySebon + (totalBuy ? dpCharge : 0);
+  const costPerShare = qty && totalPayable ? totalPayable / qty : 0;
+
+  const totalSell = qty && sellPrice ? qty * sellPrice : 0;
+  const sellCommission = totalSell ? getBrokerCommission(totalSell) : 0;
+  const sellSebon = totalSell ? totalSell * sebonRate : 0;
+  const grossProfit = qty && buyPrice && sellPrice ? (sellPrice - buyPrice) * qty : 0;
+  const capitalTax = grossProfit > 0 ? grossProfit * taxRate : 0;
+  const totalReceivable = totalSell - sellCommission - sellSebon - (totalSell ? dpCharge : 0) - capitalTax;
+  const netProfit = totalReceivable - totalBuy;
+
+  // ---------------- HANDLERS ----------------
+  const handleSubmit = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (!qty) newErrors.qty = "Please enter quantity";
+    if (!buyPrice) newErrors.buyPrice = "Please enter buy price";
+    if (mode === "sell" && !sellPrice) newErrors.sellPrice = "Please enter sell price";
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) setSubmitted(true);
+  };
+
+  const handleReset = () => {
+    setQty("");
+    setBuyPrice("");
+    setSellPrice("");
+    setInvestorType("Individual");
+    setCapitalTaxRate(7.5);
+    setSubmitted(false);
+    setErrors({});
+    setMode("buy");
+  };
+
+  return (
+    <Paper sx={{ p: 3, borderRadius: 4, boxShadow: 4, color: "#000" }}>
+      {/* Buy/Sell buttons */}
+      <Box display="flex" gap={2} justifyContent="center" mb={3}>
+        <Button
+          variant={mode === "buy" ? "contained" : "outlined"}
+          color="success"
+          sx={{ width: 120, py: 1.3, fontWeight: 700, fontSize: "1rem" }}
+          onClick={() => { setMode("buy"); setSubmitted(false); }}
+        >
+          BUY
+        </Button>
+        <Button
+          variant={mode === "sell" ? "contained" : "outlined"}
+          color="error"
+          sx={{ width: 120, py: 1.3, fontWeight: 700, fontSize: "1rem" }}
+          onClick={() => { setMode("sell"); setSubmitted(false); }}
+        >
+          SELL
+        </Button>
+      </Box>
+
+      {/* Main horizontal container: Inputs | Details */}
+      <Box display="flex" width="100%" gap={2}>
+        {/* Left: Input Fields */}
+        <Box flex={1}>
+          <Box display="flex" flexDirection="column" gap={2}>
+            <TextField
+              fullWidth
+              label="Quantity"
+              type="number"
+              value={qty}
+              error={!!errors.qty}
+              helperText={errors.qty}
+              onChange={(e) => setQty(e.target.value === "" ? "" : +e.target.value)}
+            />
+            <TextField
+              fullWidth
+              label="Buy Price (Rs.)"
+              type="number"
+              value={buyPrice}
+              error={!!errors.buyPrice}
+              helperText={errors.buyPrice}
+              onChange={(e) => setBuyPrice(e.target.value === "" ? "" : +e.target.value)}
+            />
+            {mode === "sell" && (
+              <>
+                <TextField
+                  fullWidth
+                  label="Sell Price (Rs.)"
+                  type="number"
+                  value={sellPrice}
+                  error={!!errors.sellPrice}
+                  helperText={errors.sellPrice}
+                  onChange={(e) => setSellPrice(e.target.value === "" ? "" : +e.target.value)}
+                />
+                <TextField
+                  select
+                  fullWidth
+                  label="Investor Type"
+                  value={investorType}
+                  onChange={(e) => setInvestorType(e.target.value as "Individual" | "Institutional")}
+                >
+                  <MenuItem value="Individual">Individual</MenuItem>
+                  <MenuItem value="Institutional">Institutional</MenuItem>
+                </TextField>
+                <TextField
+                  fullWidth
+                  label="Capital Gain Tax (%)"
+                  type="number"
+                  value={capitalTaxRate}
+                  InputProps={{ readOnly: true }}
+                />
+              </>
+            )}
+
+            {/* Submit & Reset */}
+            <Box display="flex" gap={2} mt={1}>
+              <Button
+                sx={{ width: 120, bgcolor: "#1976d2", color: "#fff", py: 1, fontWeight: 700, "&:hover": { bgcolor: "#1565c0" } }}
+                onClick={handleSubmit}
+              >
+                Submit
+              </Button>
+              <Button
+                sx={{ width: 120, bgcolor: "#d32f2f", color: "#fff", py: 1, fontWeight: 700, "&:hover": { bgcolor: "#b71c1c" } }}
+                onClick={handleReset}
+              >
+                Reset
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Right: Details Table */}
+        <Box flex={1}>
+          <TableContainer component={Paper} sx={{ width: "100%" }}>
+            <Table>
+              <TableBody>
+                {mode === "buy" ? (
+                  <>
+                    <TableRow><TableCell>Total Amount</TableCell><TableCell>{submitted ? `Rs. ${totalBuy.toFixed(2)}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>Commission</TableCell><TableCell>{submitted ? `Rs. ${buyCommission.toFixed(2)}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>SEBON Fee</TableCell><TableCell>{submitted ? `Rs. ${buySebon.toFixed(2)}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>DP Charge</TableCell><TableCell>{submitted ? `Rs. ${dpCharge}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>Total Payable</TableCell><TableCell>{submitted ? `Rs. ${totalPayable.toFixed(2)}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>Cost Per Share</TableCell><TableCell>{submitted ? `Rs. ${costPerShare.toFixed(2)}` : "-"}</TableCell></TableRow>
+                  </>
+                ) : (
+                  <>
+                    <TableRow><TableCell>Investor Type</TableCell><TableCell>{submitted ? investorType : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>Total Amount</TableCell><TableCell>{submitted ? `Rs. ${totalSell.toFixed(2)}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>Commission</TableCell><TableCell>{submitted ? `Rs. ${sellCommission.toFixed(2)}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>SEBON Fee</TableCell><TableCell>{submitted ? `Rs. ${sellSebon.toFixed(2)}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>DP Charge</TableCell><TableCell>{submitted ? `Rs. ${dpCharge}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>Total Receivable</TableCell><TableCell>{submitted ? `Rs. ${totalReceivable.toFixed(2)}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>Capital Gain Tax</TableCell><TableCell>{submitted ? `Rs. ${capitalTax.toFixed(2)}` : "-"}</TableCell></TableRow>
+                    <TableRow><TableCell>Profit / Loss</TableCell><TableCell sx={{ color: netProfit >= 0 ? "green" : "red" }}>{submitted ? `Rs. ${netProfit.toFixed(2)}` : "-"}</TableCell></TableRow>
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* Disclaimer */}
+          <Typography variant="caption" color="red" mt={1} display="block">
+            * Commission Amount includes NEPSE Commission Rs - & SEBON Regularity Fee Rs -
+          </Typography>
+        </Box>
+      </Box>
+    </Paper>
+  );
+}
+
+
+const ResultRow = ({ label, value, highlight, profit }: any) => {
+  const displayValue = isNaN(value) ? 0 : value; // fallback if value is empty or NaN
+  return (
+    <Box display="flex" justifyContent="space-between" py={0.7}>
+      <Typography fontWeight={highlight ? 700 : 500}>{label}</Typography>
+      <Typography
+        fontWeight={highlight ? 800 : 600}
+        color={profit ? (displayValue >= 0 ? "green" : "red") : "text.primary"}
+      >
+        Rs. {displayValue.toFixed(2)}
+      </Typography>
+    </Box>
+  );
+};
+
+
+/* ================= MAIN PAGE ================= */
 
 export default function HomePage() {
   const theme = useTheme();
@@ -315,7 +540,17 @@ export default function HomePage() {
             }
           `}
         </style>
-      </Container>
-    </Box>
-  );
-}
+
+{/* SHARE CALCULATOR */}
+      <Box mt={8}>
+        <Typography variant="h4" textAlign="center" fontWeight={900} mb={3}>
+          📟 Share Calculator
+        </Typography>
+        <ShareCalculator />
+      </Box>
+
+    </Container>
+  </Box>
+
+);
+ }

@@ -93,36 +93,40 @@ def resample_data(df: pd.DataFrame, timeframe: str) -> pd.DataFrame:
     df = df.sort_values("date")
     df.set_index("date", inplace=True)
 
-    # Mapping timeframe strings to number of days
     days_map = {
-        "1D": 1, "1W": 7, "1M": 30,
-        "6M": 180, "1Y": 365, "3Y": 1095,
-        "5Y": 1825, "ALL": None
+        "1D": 1,
+        "6M": 180,
+        "1Y": 365,
+        "3Y": 1095,
+        "5Y": 1825
     }
 
-    # Handle weekly and monthly resampling
-    if timeframe in ["1W", "1M"]:
-        rule = "W" if timeframe == "1W" else "M"
-        df_resampled = df.resample(rule).agg({
+    if timeframe == "1W":
+        df_resampled = df.resample("W").agg({
             "open": "first",
             "high": "max",
             "low": "min",
             "close": "last",
             "close_norm": "last"
         })
-
-    # Handle fixed-day timeframes
-    elif timeframe in days_map and days_map[timeframe]:
+        df_resampled = df_resampled.tail(52)  # last 1 year of weeks
+    elif timeframe == "1M":
+        df_resampled = df.resample("D").agg({
+            "open": "first",
+            "high": "max",
+            "low": "min",
+            "close": "last",
+            "close_norm": "last"
+        })
+        df_resampled = df_resampled.tail(30)  # last 30 days only
+    elif timeframe in days_map:
         df_resampled = df.tail(days_map[timeframe])
-
-    # If ALL timeframe is selected
     else:
-        df_resampled = df.copy()
+        df_resampled = df.copy()  # ALL data
 
-    # -------------------------------
-    # Technical Indicator Calculations
-    # -------------------------------
-
+    # -------------------------
+    # Technical Indicators
+    # -------------------------
     df_resampled["avg_price"] = (df_resampled["high"] + df_resampled["low"]) / 2
     df_resampled["price_change"] = df_resampled["close"].pct_change(fill_method=None) * 100
     df_resampled["price_change"] = df_resampled["price_change"].replace([np.inf, -np.inf, np.nan], 0)
@@ -134,6 +138,8 @@ def resample_data(df: pd.DataFrame, timeframe: str) -> pd.DataFrame:
 
     df_resampled.reset_index(inplace=True)
     return clean_dataframe(df_resampled)
+
+
 
 
 # -------------------------------------------------------------------

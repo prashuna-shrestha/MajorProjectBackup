@@ -1,5 +1,6 @@
-// app/news/NewsGrid.tsx
 "use client";
+
+import { useEffect, useState } from "react";
 
 //====================
 // 1. Type Definitions
@@ -9,8 +10,8 @@ type NewsItem = {
   summary: string;
   source: string;
   url: string;
-  image?: string;       // Optional image for the news
-  publishedAt?: string; // Optional publish date
+  image?: string;
+  publishedAt?: string;
 };
 
 //====================
@@ -41,37 +42,62 @@ function timeAgo(date: string) {
 // 3. Main Component
 //====================
 export default function NewsGrid({ news }: { news: NewsItem[] }) {
+  const [isDark, setIsDark] = useState(false);
+
+  // Detect system dark mode
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    setIsDark(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+    mediaQuery.addEventListener("change", handler);
+
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
+  // Theme-aware colors
+  const colors = {
+    cardBg: isDark ? "#111827" : "#ffffff",
+    border: isDark ? "#374151" : "#e5e7eb",
+    textPrimary: isDark ? "#f9fafb" : "#111827",
+    textSecondary: isDark ? "#d1d5db" : "#4b5563",
+    badgeBg: isDark ? "#1f2937" : "#f1f5f9",
+    badgeText: isDark ? "#e5e7eb" : "#111827",
+    timeText: isDark ? "#9ca3af" : "#6b7280",
+    link: "#2563eb",
+  };
+
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", // Responsive columns
-        gap: "20px", // Spacing between cards
+        gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+        gap: "20px",
       }}
     >
       {news.map((item, idx) => (
         <div
           key={idx}
           style={{
-            background: "#fff",
+            background: colors.cardBg,
             borderRadius: "14px",
             overflow: "hidden",
-            border: "1px solid #e5e7eb",
+            border: `1px solid ${colors.border}`,
             transition: "all 0.25s ease",
           }}
         >
-          {/*==================== IMAGE ====================*/}
+          {/* IMAGE */}
           <div style={{ height: "180px", overflow: "hidden" }}>
             <img
-              src={item.image || "/placeholder.jpg"} // Fallback placeholder
+              src={item.image || "/placeholder.jpg"}
               alt={item.title}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </div>
 
-          {/*==================== CONTENT ====================*/}
+          {/* CONTENT */}
           <div style={{ padding: "14px" }}>
-            {/* Source & Published Time */}
+            {/* Source & Time */}
             <div
               style={{
                 display: "flex",
@@ -80,10 +106,10 @@ export default function NewsGrid({ news }: { news: NewsItem[] }) {
                 marginBottom: "6px",
               }}
             >
-              {/* Source Badge */}
               <span
                 style={{
-                  background: "#f1f5f9",
+                  background: colors.badgeBg,
+                  color: colors.badgeText,
                   padding: "3px 8px",
                   borderRadius: "6px",
                   fontWeight: 600,
@@ -92,24 +118,40 @@ export default function NewsGrid({ news }: { news: NewsItem[] }) {
                 {item.source}
               </span>
 
-              {/* Published time */}
               {item.publishedAt && (
-                <span style={{ color: "#6b7280" }}>{timeAgo(item.publishedAt)}</span>
+                <span style={{ color: colors.timeText }}>
+                  {timeAgo(item.publishedAt)}
+                </span>
               )}
             </div>
 
             {/* Title */}
-            <h3 style={{ fontSize: "17px", fontWeight: 600 }}>{item.title}</h3>
+            <h3
+              style={{
+                fontSize: "17px",
+                fontWeight: 600,
+                color: colors.textPrimary,
+              }}
+            >
+              {item.title}
+            </h3>
 
             {/* Summary */}
-            <p style={{ fontSize: "14px", color: "#4b5563" }}>{item.summary}</p>
+            <p
+              style={{
+                fontSize: "14px",
+                color: colors.textSecondary,
+              }}
+            >
+              {item.summary}
+            </p>
 
-            {/* External Link */}
+            {/* Link */}
             <a
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: "#2563eb" }}
+              style={{ color: colors.link }}
             >
               Read more →
             </a>
